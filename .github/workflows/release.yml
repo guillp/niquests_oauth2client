@@ -29,19 +29,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      - name: Generate Changelog
-        if: ${{ false }}
-        uses: heinrichreimer/github-changelog-generator-action@v2.4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issues: true
-          issuesWoLabels: true
-          pullRequests: true
-          prWoLabels: true
-          unreleased: true
-          addSections: '{"documentation":{"prefix":"**Documentation:**","labels":["documentation"]}}'
-          output: CHANGELOG.md
-
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-versions }}
@@ -65,10 +52,6 @@ jobs:
       - name: Build wheels and source tarball
         run: >-
           poetry build
-
-      - name: Show temporary files
-        run: >-
-          ls -l
 
       - name: Create GitHub release
         id: create_release
