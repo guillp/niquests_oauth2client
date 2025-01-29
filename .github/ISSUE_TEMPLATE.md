@@ -1,4 +1,4 @@
-- `requests_oauth2client` version:
+- `niquests_oauth2client` version:
 - Python version:
 - Operating System:
 

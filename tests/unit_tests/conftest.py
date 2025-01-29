@@ -4,12 +4,12 @@ import base64
 import hashlib
 from typing import TYPE_CHECKING, Any
 
+import niquests
 import pytest
-import requests
 from furl import furl  # type: ignore[import-untyped]
 from jwskate import Jwk
 
-from requests_oauth2client import (
+from niquests_oauth2client import (
     ApiClient,
     AuthorizationRequest,
     AuthorizationResponse,
@@ -23,13 +23,13 @@ from requests_oauth2client import (
 )
 
 if TYPE_CHECKING:
-    from requests_oauth2client.client_authentication import BaseClientAuthenticationMethod
+    from niquests_oauth2client.client_authentication import BaseClientAuthenticationMethod
     from tests.conftest import FixtureRequest
 
 
 @pytest.fixture(scope="session")
-def session() -> requests.Session:
-    return requests.Session()
+def session() -> niquests.Session:
+    return niquests.Session()
 
 
 def join_url(root: str, path: str) -> str:
@@ -467,9 +467,9 @@ def authorization_request(  # noqa: C901
         if code_verifier is None:
             assert isinstance(generated_code_challenge, str)
             assert len(generated_code_challenge) == 43
-            assert base64.urlsafe_b64decode(
-                generated_code_challenge.encode() + b"="
-            ), f"Invalid B64U for generated code_challenge: {generated_code_challenge}"
+            assert base64.urlsafe_b64decode(generated_code_challenge.encode() + b"="), (
+                f"Invalid B64U for generated code_challenge: {generated_code_challenge}"
+            )
         else:
             assert azr.code_verifier == code_verifier
             assert generated_code_challenge == base64.urlsafe_b64encode(

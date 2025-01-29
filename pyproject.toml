@@ -1,10 +1,10 @@
 [tool]
 [tool.poetry]
-name = "requests_oauth2client"
-version = "1.6.0"
-homepage = "https://github.com/guillp/requests_oauth2client"
-description = "An OAuth2.x client based on `requests`."
-authors = ["Guillaume Pujol <guill.p.linux@gmail.com>"]
+name = "niquests_oauth2client"
+version = "1.7.0"
+homepage = "https://github.com/guillp/niquests_oauth2client"
+description = "An OAuth2.x client based on `niquests`."
+authors = ["Guillaume Pujol <guillp.dev@pm.me>"]
 readme = "README.md"
 license = "Apache-2.0"
 classifiers = [
@@ -13,28 +13,28 @@ classifiers = [
     'Topic :: Security',
     'License :: OSI Approved :: Apache Software License',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
 ]
 packages = [
-    { include = "requests_oauth2client" },
+    { include = "niquests_oauth2client" },
     { include = "tests", format = "sdist" },
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.9"
 
-requests = ">=2.19.0"
+niquests = ">=3.12"
 binapy = ">=0.8"
 furl = ">=2.1.2"
 jwskate = ">=0.11.1"
 attrs = ">=23.2.0"
 
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 coverage = ">=7.6.1"
 flask = ">=3.0.3"
 livereload = ">=2.6.3"
@@ -54,7 +54,6 @@ pytest-mypy = ">=0.9.1"
 requests-mock = ">=1.9.3"
 toml = ">=0.10.2"
 tox = ">=4"
-types-requests = ">=2.25.10"
 types-cryptography = ">=3.3.15"
 virtualenv = ">=20.2.2"
 
@@ -99,7 +98,7 @@ wrap-descriptions = 120
 blank = true
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py39"
 line-length = 120
 
 

@@ -6,7 +6,7 @@ from freezegun import freeze_time
 from freezegun.api import FrozenDateTimeFactory
 from pytest_mock import MockerFixture
 
-from requests_oauth2client import (
+from niquests_oauth2client import (
     BearerToken,
     ClientSecretPost,
     DeviceAuthorizationError,
@@ -16,7 +16,7 @@ from requests_oauth2client import (
     OAuth2Client,
     UnauthorizedClient,
 )
-from tests.conftest import RequestsMocker, RequestValidatorType
+from tests.conftest import NiquestsMocker, RequestValidatorType
 
 
 def test_device_authorization_response(
@@ -114,7 +114,7 @@ def device_authorization_client(
 
 
 def test_device_authorization_client(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     device_authorization_client: OAuth2Client,
     device_authorization_endpoint: str,
     device_code: str,
@@ -125,7 +125,7 @@ def test_device_authorization_client(
     client_id: str,
     client_secret: str,
 ) -> None:
-    requests_mock.post(
+    niquests_mock.post(
         device_authorization_endpoint,
         json={
             "device_code": device_code,
@@ -138,19 +138,19 @@ def test_device_authorization_client(
     )
 
     device_authorization_client.authorize_device()
-    assert requests_mock.called_once
-    client_secret_post_auth_validator(requests_mock.last_request, client_id=client_id, client_secret=client_secret)
+    assert niquests_mock.called_once
+    client_secret_post_auth_validator(niquests_mock.last_request, client_id=client_id, client_secret=client_secret)
 
 
 def test_device_authorization_client_error(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     device_authorization_client: OAuth2Client,
     device_authorization_endpoint: str,
     client_secret_post_auth_validator: RequestValidatorType,
     client_id: str,
     client_secret: str,
 ) -> None:
-    requests_mock.post(
+    niquests_mock.post(
         device_authorization_endpoint,
         status_code=400,
         json={
@@ -160,19 +160,19 @@ def test_device_authorization_client_error(
 
     with pytest.raises(UnauthorizedClient):
         device_authorization_client.authorize_device()
-    assert requests_mock.called_once
-    client_secret_post_auth_validator(requests_mock.last_request, client_id=client_id, client_secret=client_secret)
+    assert niquests_mock.called_once
+    client_secret_post_auth_validator(niquests_mock.last_request, client_id=client_id, client_secret=client_secret)
 
 
 def test_device_authorization_invalid_errors(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     device_authorization_client: OAuth2Client,
     device_authorization_endpoint: str,
     client_secret_post_auth_validator: RequestValidatorType,
     client_id: str,
     client_secret: str,
 ) -> None:
-    requests_mock.post(
+    niquests_mock.post(
         device_authorization_endpoint,
         status_code=400,
         json={
@@ -182,11 +182,11 @@ def test_device_authorization_invalid_errors(
 
     with pytest.raises(DeviceAuthorizationError):
         device_authorization_client.authorize_device()
-    assert requests_mock.called_once
-    client_secret_post_auth_validator(requests_mock.last_request, client_id=client_id, client_secret=client_secret)
+    assert niquests_mock.called_once
+    client_secret_post_auth_validator(niquests_mock.last_request, client_id=client_id, client_secret=client_secret)
 
-    requests_mock.reset_mock()
-    requests_mock.post(
+    niquests_mock.reset_mock()
+    niquests_mock.post(
         device_authorization_endpoint,
         status_code=400,
         json={
@@ -196,13 +196,13 @@ def test_device_authorization_invalid_errors(
 
     with pytest.raises(InvalidDeviceAuthorizationResponse):
         device_authorization_client.authorize_device()
-    assert requests_mock.called_once
-    client_secret_post_auth_validator(requests_mock.last_request, client_id=client_id, client_secret=client_secret)
+    assert niquests_mock.called_once
+    client_secret_post_auth_validator(niquests_mock.last_request, client_id=client_id, client_secret=client_secret)
 
 
 @freeze_time()
 def test_device_authorization_pooling_job(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     token_endpoint: str,
     client_id: str,
     client_secret: str,
@@ -229,32 +229,32 @@ def test_device_authorization_pooling_job(
         ),
     )
 
-    requests_mock.post(token_endpoint, status_code=401, json={"error": "authorization_pending"})
+    niquests_mock.post(token_endpoint, status_code=401, json={"error": "authorization_pending"})
     mocker.patch("time.sleep")
 
     assert job() is None
     time.sleep.assert_called_once_with(interval)  # type: ignore[attr-defined]
-    assert requests_mock.called_once
+    assert niquests_mock.called_once
     assert job.interval == interval
-    device_code_grant_validator(requests_mock.last_request, device_code=device_code)
+    device_code_grant_validator(niquests_mock.last_request, device_code=device_code)
 
-    requests_mock.reset_mock()
-    requests_mock.post(token_endpoint, status_code=401, json={"error": "slow_down"})
+    niquests_mock.reset_mock()
+    niquests_mock.post(token_endpoint, status_code=401, json={"error": "slow_down"})
     time.sleep.reset_mock()  # type: ignore[attr-defined]
 
     assert job() is None
     time.sleep.assert_called_once_with(interval)  # type: ignore[attr-defined]
-    assert requests_mock.called_once
+    assert niquests_mock.called_once
     assert job.interval == interval + job.slow_down_interval
-    device_code_grant_validator(requests_mock.last_request, device_code=device_code)
+    device_code_grant_validator(niquests_mock.last_request, device_code=device_code)
 
-    requests_mock.reset_mock()
-    requests_mock.post(token_endpoint, json={"access_token": access_token})
+    niquests_mock.reset_mock()
+    niquests_mock.post(token_endpoint, json={"access_token": access_token})
     time.sleep.reset_mock()  # type: ignore[attr-defined]
 
     token = job()
     time.sleep.assert_called_once_with(interval + job.slow_down_interval)  # type: ignore[attr-defined]
-    assert requests_mock.called_once
+    assert niquests_mock.called_once
     assert isinstance(token, BearerToken)
     assert token.access_token == access_token
 

@@ -6,8 +6,8 @@ from typing import Any
 
 from flask import session
 
-from requests_oauth2client.auth import OAuth2ClientCredentialsAuth
-from requests_oauth2client.tokens import BearerToken, BearerTokenSerializer
+from niquests_oauth2client.auth import OAuth2ClientCredentialsAuth
+from niquests_oauth2client.tokens import BearerToken, BearerTokenSerializer
 
 
 class FlaskSessionAuthMixin:

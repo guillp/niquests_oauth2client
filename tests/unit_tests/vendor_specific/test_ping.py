@@ -1,6 +1,6 @@
 import pytest
 
-from requests_oauth2client.vendor_specific import Ping
+from niquests_oauth2client.vendor_specific import Ping
 
 
 def test_ping_client() -> None:

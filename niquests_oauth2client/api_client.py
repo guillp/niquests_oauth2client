@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
-from typing import IO, TYPE_CHECKING, Any, Callable, Iterable, Mapping, MutableMapping
+from collections.abc import Iterable, Mapping, MutableMapping
+from typing import IO, TYPE_CHECKING, Any, Callable
 from urllib.parse import quote as urlencode
 from urllib.parse import urljoin
 
-import requests
+import niquests
 from attrs import frozen
 from typing_extensions import Literal, Self
 
 if TYPE_CHECKING:
     from types import TracebackType
 
-    from requests.cookies import RequestsCookieJar
+    from niquests.cookies import RequestsCookieJar
 
 
 class InvalidBoolFieldsParam(ValueError):
@@ -84,8 +85,8 @@ class ApiClient:
       `None` to remove that header.
 
     `base_url` will serve as root for relative urls passed to
-    [ApiClient.request()][requests_oauth2client.api_client.ApiClient.request],
-    [ApiClient.get()][requests_oauth2client.api_client.ApiClient.get], etc.
+    [ApiClient.request()][niquests_oauth2client.api_client.ApiClient.request],
+    [ApiClient.get()][niquests_oauth2client.api_client.ApiClient.get], etc.
 
     A [requests.HTTPError][] will be raised everytime an API call returns an error code (>= 400), unless
     you set `raise_for_status` to `False`. Additional parameters passed at init time, including
@@ -93,7 +94,7 @@ class ApiClient:
 
     Example:
         ```python
-        from requests_oauth2client import ApiClient
+        from niquests_oauth2client import ApiClient
 
         api = ApiClient("https://myapi.local/resource", timeout=10)
         resp = api.get("/myid")  # this will send a GET request
@@ -141,29 +142,29 @@ class ApiClient:
     """
 
     base_url: str
-    auth: requests.auth.AuthBase | None
+    auth: niquests.auth.AuthBase | None
     timeout: int | None
     raise_for_status: bool
     none_fields: Literal["include", "exclude", "empty"]
     bool_fields: tuple[Any, Any] | None
-    session: requests.Session
+    session: niquests.Session
 
     def __init__(
         self,
         base_url: str,
         *,
-        auth: requests.auth.AuthBase | None = None,
+        auth: niquests.auth.AuthBase | None = None,
         timeout: int | None = 60,
         raise_for_status: bool = True,
         none_fields: Literal["include", "exclude", "empty"] = "exclude",
         bool_fields: tuple[Any, Any] | None = ("true", "false"),
         cookies: Mapping[str, Any] | None = None,
         headers: Mapping[str, Any] | None = None,
-        user_agent: str | None = requests.utils.default_user_agent(),
-        session: requests.Session | None = None,
+        user_agent: str | None = niquests.utils.default_user_agent(),
+        session: niquests.Session | None = None,
         **session_kwargs: Any,
     ) -> None:
-        session = session or requests.Session()
+        session = session or niquests.Session()
 
         if cookies:
             for key, val in cookies.items():
@@ -217,8 +218,8 @@ class ApiClient:
         auth: (
             None
             | tuple[str, str]
-            | requests.auth.AuthBase
-            | Callable[[requests.PreparedRequest], requests.PreparedRequest]
+            | niquests.auth.AuthBase
+            | Callable[[niquests.PreparedRequest], niquests.PreparedRequest]
         ) = None,
         timeout: None | float | tuple[float, float] | tuple[float, None] = None,
         allow_redirects: bool = False,
@@ -227,7 +228,7 @@ class ApiClient:
         | (
             MutableMapping[
                 str,
-                (Iterable[Callable[[requests.Response], Any]] | Callable[[requests.Response], Any]),
+                (Iterable[Callable[[niquests.Response], Any]] | Callable[[niquests.Response], Any]),
             ]
         ) = None,
         stream: bool | None = None,
@@ -237,11 +238,11 @@ class ApiClient:
         raise_for_status: bool | None = None,
         none_fields: Literal["include", "exclude", "empty"] | None = None,
         bool_fields: tuple[Any, Any] | None = None,
-    ) -> requests.Response:
+    ) -> niquests.Response:
         """A wrapper around [requests.Session.request][] method with extra features.
 
         Additional features are described in
-        [ApiClient][requests_oauth2client.api_client.ApiClient] documentation.
+        [ApiClient][niquests_oauth2client.api_client.ApiClient] documentation.
 
         All parameters will be passed as-is to [requests.Session.request][], expected those
         described below which have a special behavior.
@@ -252,13 +253,13 @@ class ApiClient:
             - a path, as `str`: that path will be joined to the configured API url,
             - an iterable of path segments: that will be joined to the root url.
           raise_for_status: like the parameter of the same name from
-            [ApiClient][requests_oauth2client.api_client.ApiClient],
+            [ApiClient][niquests_oauth2client.api_client.ApiClient],
             but this will be applied for this request only.
           none_fields: like the parameter of the same name from
-            [ApiClient][requests_oauth2client.api_client.ApiClient],
+            [ApiClient][niquests_oauth2client.api_client.ApiClient],
             but this will be applied for this request only.
           bool_fields: like the parameter of the same name from
-            [ApiClient][requests_oauth2client.api_client.ApiClient],
+            [ApiClient][niquests_oauth2client.api_client.ApiClient],
             but this will be applied for this request only.
 
         Returns:
@@ -393,11 +394,11 @@ class ApiClient:
         path: None | str | bytes | Iterable[str | bytes | int] = None,
         raise_for_status: bool | None = None,
         **kwargs: Any,
-    ) -> requests.Response:
+    ) -> niquests.Response:
         """Send a GET request and return a [Response][requests.Response] object.
 
         The passed `url` is relative to the `base_url` passed at initialization time.
-        It takes the same parameters as [ApiClient.request()][requests_oauth2client.api_client.ApiClient.request].
+        It takes the same parameters as [ApiClient.request()][niquests_oauth2client.api_client.ApiClient.request].
 
         Args:
             path: the path where the request will be sent.
@@ -418,11 +419,11 @@ class ApiClient:
         path: str | bytes | Iterable[str | bytes] | None = None,
         raise_for_status: bool | None = None,
         **kwargs: Any,
-    ) -> requests.Response:
+    ) -> niquests.Response:
         """Send a POST request and return a [Response][requests.Response] object.
 
         The passed `url` is relative to the `base_url` passed at initialization time.
-        It takes the same parameters as [ApiClient.request()][requests_oauth2client.api_client.ApiClient.request].
+        It takes the same parameters as [ApiClient.request()][niquests_oauth2client.api_client.ApiClient.request].
 
         Args:
           path: the path where the request will be sent.
@@ -443,11 +444,11 @@ class ApiClient:
         path: str | bytes | Iterable[str | bytes] | None = None,
         raise_for_status: bool | None = None,
         **kwargs: Any,
-    ) -> requests.Response:
+    ) -> niquests.Response:
         """Send a PATCH request. Return a [Response][requests.Response] object.
 
         The passed `url` is relative to the `base_url` passed at initialization time.
-        It takes the same parameters as [ApiClient.request()][requests_oauth2client.api_client.ApiClient.request].
+        It takes the same parameters as [ApiClient.request()][niquests_oauth2client.api_client.ApiClient.request].
 
         Args:
           path: the path where the request will be sent.
@@ -468,11 +469,11 @@ class ApiClient:
         path: str | bytes | Iterable[str | bytes] | None = None,
         raise_for_status: bool | None = None,
         **kwargs: Any,
-    ) -> requests.Response:
+    ) -> niquests.Response:
         """Send a PUT request. Return a [Response][requests.Response] object.
 
         The passed `url` is relative to the `base_url` passed at initialization time.
-        It takes the same parameters as [ApiClient.request()][requests_oauth2client.api_client.ApiClient.request].
+        It takes the same parameters as [ApiClient.request()][niquests_oauth2client.api_client.ApiClient.request].
 
         Args:
           path: the path where the request will be sent.
@@ -493,11 +494,11 @@ class ApiClient:
         path: str | bytes | Iterable[str | bytes] | None = None,
         raise_for_status: bool | None = None,
         **kwargs: Any,
-    ) -> requests.Response:
+    ) -> niquests.Response:
         """Send a DELETE request. Return a [Response][requests.Response] object.
 
         The passed `url` may be relative to the url passed at initialization time. It takes the same
-        parameters as [ApiClient.request()][requests_oauth2client.api_client.ApiClient.request].
+        parameters as [ApiClient.request()][niquests_oauth2client.api_client.ApiClient.request].
 
         Args:
           path: the path where the request will be sent.
@@ -524,7 +525,7 @@ class ApiClient:
 
         Example:
             ```python
-            from requests_oauth2client import ApiClient
+            from niquests_oauth2client import ApiClient
 
             api = ApiClient("https://myapi.local")
             resource1 = api.resource1.get()  # GET https://myapi.local/resource1
@@ -545,7 +546,7 @@ class ApiClient:
 
         Example:
             ```python
-            from requests_oauth2client import ApiClient
+            from niquests_oauth2client import ApiClient
 
             api = ApiClient("https://myapi.local")
             resource1 = api["resource1"].get()  # GET https://myapi.local/resource1

@@ -156,7 +156,7 @@ class BackChannelAuthenticationPoolingJob(BaseTokenEndpointPoolingJob):
         This actually calls [OAuth2Client.ciba(auth_req_id)] on `client`.
 
         Returns:
-            a [BearerToken][requests_oauth2client.tokens.BearerToken]
+            a [BearerToken][niquests_oauth2client.tokens.BearerToken]
 
         """
         return self.client.ciba(self.auth_req_id, requests_kwargs=self.requests_kwargs, **self.token_kwargs)

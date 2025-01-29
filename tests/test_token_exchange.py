@@ -4,13 +4,13 @@ import pytest
 from freezegun import freeze_time
 from furl import Query  # type: ignore[import-untyped]
 
-from requests_oauth2client import BearerToken, ClientSecretPost, IdToken, OAuth2Client, UnknownTokenType
-from tests.conftest import RequestsMocker
+from niquests_oauth2client import BearerToken, ClientSecretPost, IdToken, OAuth2Client, UnknownTokenType
+from tests.conftest import NiquestsMocker
 
 
 @freeze_time()
 def test_token_exchange(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     client_id: str,
     client_secret: str,
     token_endpoint: str,
@@ -19,7 +19,7 @@ def test_token_exchange(
 
     client = OAuth2Client(token_endpoint, ClientSecretPost(client_id, client_secret))
 
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         json={
             "access_token": access_token,
@@ -38,8 +38,8 @@ def test_token_exchange(
     assert token_response.token_type == "Bearer"
     assert token_response.expires_in == 60
 
-    assert requests_mock.last_request is not None
-    params = Query(requests_mock.last_request.text).params
+    assert niquests_mock.last_request is not None
+    params = Query(niquests_mock.last_request.text).params
     assert params.pop("client_id") == client_id
     assert params.pop("client_secret") == client_secret
     assert params.pop("grant_type") == "urn:ietf:params:oauth:grant-type:token-exchange"
@@ -94,7 +94,7 @@ def test_token_type() -> None:
     assert OAuth2Client.get_token_type("saml2") == "urn:ietf:params:oauth:token-type:saml2"
     assert OAuth2Client.get_token_type("jwt") == "urn:ietf:params:oauth:token-type:jwt"
 
-    with pytest.raises(TypeError, match="token is of type '<class 'requests_oauth2client.tokens.IdToken'>'") as exc:
+    with pytest.raises(TypeError, match="token is of type '<class 'niquests_oauth2client.tokens.IdToken'>'") as exc:
         OAuth2Client.get_token_type(
             token_type="access_token",
             token=IdToken(
@@ -121,6 +121,6 @@ def test_token_type() -> None:
         OAuth2Client.get_token_type(token_type="refresh_token", token=BearerToken("mytoken"))
     assert exc.type is UnknownTokenType
 
-    with pytest.raises(TypeError, match="token is of type '<class 'requests_oauth2client.tokens.BearerToken'>") as exc2:
+    with pytest.raises(TypeError, match="token is of type '<class 'niquests_oauth2client.tokens.BearerToken'>") as exc2:
         OAuth2Client.get_token_type(token_type="id_token", token=BearerToken("mytoken"))
     assert exc2.type is UnknownTokenType

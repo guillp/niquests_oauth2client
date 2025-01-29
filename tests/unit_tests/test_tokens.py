@@ -15,7 +15,7 @@ from jwskate import (
     SignedJwt,
 )
 
-from requests_oauth2client import BearerToken, BearerTokenSerializer, IdToken
+from niquests_oauth2client import BearerToken, BearerTokenSerializer, IdToken
 
 ID_TOKEN = (
     "eyJhbGciOiJSUzI1NiIsImtpZCI6Im15X2tleSJ9.eyJhY3IiOiIyIiwiYW1yIjpbInB3ZCIsIm90cCJdLCJhdWQiOiJjbGllbnRfaWQiL"

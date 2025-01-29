@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from requests_oauth2client import InvalidUri, validate_endpoint_uri
-from requests_oauth2client.utils import accepts_expires_in
+from niquests_oauth2client import InvalidUri, validate_endpoint_uri
+from niquests_oauth2client.utils import accepts_expires_in
 
 
 def test_validate_uri() -> None:

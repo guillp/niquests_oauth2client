@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-import requests  # noqa: TCH002
+import niquests  # noqa: TC002
 
-from requests_oauth2client import OAuth2Client
+from niquests_oauth2client import OAuth2Client
 
 
 class Ping:
@@ -16,11 +16,11 @@ class Ping:
     def client(
         cls,
         issuer: str,
-        auth: requests.auth.AuthBase | tuple[str, str] | str | None = None,
+        auth: niquests.auth.AuthBase | tuple[str, str] | str | None = None,
         client_id: str | None = None,
         client_secret: str | None = None,
         private_jwk: Any = None,
-        session: requests.Session | None = None,
+        session: niquests.Session | None = None,
     ) -> OAuth2Client:
         """Initialize an OAuth2Client for PingFederate.
 

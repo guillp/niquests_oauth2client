@@ -1,7 +1,7 @@
 import pytest
 
-from requests_oauth2client import OAuth2ClientCredentialsAuth
-from requests_oauth2client.vendor_specific import Auth0
+from niquests_oauth2client import OAuth2ClientCredentialsAuth
+from niquests_oauth2client.vendor_specific import Auth0
 
 
 def test_auth0_management() -> None:

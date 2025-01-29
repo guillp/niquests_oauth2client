@@ -6,10 +6,10 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from functools import cached_property
 from math import ceil
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Sequence
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
 import jwskate
-import requests
+import niquests
 from attrs import asdict, frozen
 from binapy import BinaPy
 from typing_extensions import Self
@@ -17,6 +17,8 @@ from typing_extensions import Self
 from .utils import accepts_expires_in
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from .authorization_request import AuthorizationResponse
     from .client import OAuth2Client
 
@@ -248,7 +250,7 @@ def id_token_converter(
 
 
 @frozen(init=False)
-class BearerToken(TokenResponse, requests.auth.AuthBase):
+class BearerToken(TokenResponse, niquests.auth.AuthBase):
     """Represents a Bearer Token as returned by a Token Endpoint.
 
     This is a wrapper around a Bearer Token and associated parameters, such as expiration date and
@@ -564,13 +566,13 @@ be a maximum of {azr.max_age} sec ago.
         """
         return self.kwargs.get(key) or super().__getattribute__(key)
 
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(self, request: niquests.PreparedRequest) -> niquests.PreparedRequest:
         """Implement the usage of Bearer Tokens in requests.
 
         This will add a properly formatted `Authorization: Bearer <token>` header in the request.
 
         If the configured token is an instance of BearerToken with an expires_at attribute, raises
-        [ExpiredAccessToken][requests_oauth2client.exceptions.ExpiredAccessToken] once the access
+        [ExpiredAccessToken][niquests_oauth2client.exceptions.ExpiredAccessToken] once the access
         token is expired.
 
         Args:

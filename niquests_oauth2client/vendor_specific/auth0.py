@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from requests_oauth2client import ApiClient, OAuth2Client, OAuth2ClientCredentialsAuth
+from niquests_oauth2client import ApiClient, OAuth2Client, OAuth2ClientCredentialsAuth
 
 if TYPE_CHECKING:
-    import requests
+    import niquests
     from jwskate import Jwk
 
 
@@ -39,13 +39,13 @@ class Auth0:
         cls,
         tenant: str,
         auth: (
-            requests.auth.AuthBase | tuple[str, str] | tuple[str, Jwk] | tuple[str, dict[str, Any]] | str | None
+            niquests.auth.AuthBase | tuple[str, str] | tuple[str, Jwk] | tuple[str, dict[str, Any]] | str | None
         ) = None,
         *,
         client_id: str | None = None,
         client_secret: str | None = None,
         private_jwk: Any | None = None,
-        session: requests.Session | None = None,
+        session: niquests.Session | None = None,
         **kwargs: Any,
     ) -> OAuth2Client:
         """Initialise an OAuth2Client for an Auth0 tenant."""
@@ -77,13 +77,13 @@ class Auth0:
         cls,
         tenant: str,
         auth: (
-            requests.auth.AuthBase | tuple[str, str] | tuple[str, Jwk] | tuple[str, dict[str, Any]] | str | None
+            niquests.auth.AuthBase | tuple[str, str] | tuple[str, Jwk] | tuple[str, dict[str, Any]] | str | None
         ) = None,
         *,
         client_id: str | None = None,
         client_secret: str | None = None,
         private_jwk: Any | None = None,
-        session: requests.Session | None = None,
+        session: niquests.Session | None = None,
         **kwargs: Any,
     ) -> ApiClient:
         """Initialize a client for the Auth0 Management API.
@@ -94,22 +94,22 @@ class Auth0:
 
         Args:
             tenant: the tenant name.
-                Same definition as for [Auth0.client][requests_oauth2client.vendor_specific.auth0.Auth0.client]
+                Same definition as for [Auth0.client][niquests_oauth2client.vendor_specific.auth0.Auth0.client]
             auth: client credentials.
-                Same definition as for [OAuth2Client][requests_oauth2client.client.OAuth2Client]
+                Same definition as for [OAuth2Client][niquests_oauth2client.client.OAuth2Client]
             client_id: the Client ID.
-                Same definition as for [OAuth2Client][requests_oauth2client.client.OAuth2Client]
+                Same definition as for [OAuth2Client][niquests_oauth2client.client.OAuth2Client]
             client_secret: the Client Secret.
-                Same definition as for [OAuth2Client][requests_oauth2client.client.OAuth2Client]
+                Same definition as for [OAuth2Client][niquests_oauth2client.client.OAuth2Client]
             private_jwk: the private key to use for client authentication.
-                Same definition as for [OAuth2Client][requests_oauth2client.client.OAuth2Client]
-            session: requests session.
-                Same definition as for [OAuth2Client][requests_oauth2client.client.OAuth2Client]
+                Same definition as for [OAuth2Client][niquests_oauth2client.client.OAuth2Client]
+            session: niquests Session.
+                Same definition as for [OAuth2Client][niquests_oauth2client.client.OAuth2Client]
             **kwargs: additional kwargs to pass to the ApiClient base class
 
         Example:
             ```python
-            from requests_oauth2client.vendor_specific import Auth0
+            from niquests_oauth2client.vendor_specific import Auth0
 
             a0mgmt = Auth0.management_api_client("mytenant.eu", client_id=client_id, client_secret=client_secret)
             users = a0mgmt.get("users", params={"page": 0, "per_page": 100})

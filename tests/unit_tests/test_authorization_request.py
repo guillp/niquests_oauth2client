@@ -7,7 +7,7 @@ import pytest
 from freezegun import freeze_time
 from jwskate import JweCompact, Jwk, Jwt, SignedJwt
 
-from requests_oauth2client import (
+from niquests_oauth2client import (
     AuthorizationRequest,
     AuthorizationRequestSerializer,
     AuthorizationResponse,

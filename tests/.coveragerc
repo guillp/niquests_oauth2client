@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = requests_oauth2client
+source = niquests_oauth2client
 omit =
 
 

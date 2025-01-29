@@ -1,5 +1,10 @@
-`requests_oauth2client` is an OAuth 2.x client for Python, able to obtain, refresh and revoke tokens from any
-OAuth2.x/OIDC compliant Authorization Server. It sits upon and extends the famous [requests] HTTP client module.
+> This is a side project forked from my initial module [`requests_oauth2client`](https://github.com/guillp/requests_oauth2client),
+> which was based on `requests`. As `requests` is more or less officially replaced by `niquests`, this new module ensures
+> compatibility with `niquests`. I will maintain and update both as much as possible, since they are almost 100% the same
+> code base. But, at some point, I hope to add async features in `niquests_oauth2client`.
+
+`niquests_oauth2client` is an OAuth 2.x client for Python, able to obtain, refresh and revoke tokens from any
+OAuth2.x/OIDC compliant Authorization Server. It sits upon and extends the [niquests] HTTP client module.
 
 It can act as an [OAuth 2.0](https://tools.ietf.org/html/rfc6749) /
 [2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1) client, to automatically get and renew Access Tokens,
@@ -12,7 +17,7 @@ based on the
 [Device Authorization](https://www.rfc-editor.org/rfc/rfc8628.html),
 [Resource Owner Password](https://www.rfc-editor.org/rfc/rfc6749#section-4.3) or
 [CIBA](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html) grants.
-Additional grant types are easy to add if needed.
+Additional grant types are easy to add if needed.[](https://)
 
 It also supports [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html),
 [PKCE](https://www.rfc-editor.org/rfc/rfc7636.html),
@@ -27,54 +32,54 @@ It also supports [OpenID Connect 1.0](https://openid.net/specs/openid-connect-co
 as well as using custom params to any endpoint, and other important features that are often overlooked or needlessly
 complex in other client libraries.
 
-And it also includes a [wrapper][apiclient] around [requests.Session] that makes it super easy to use REST-style APIs,
+And it also includes a [wrapper][apiclient] around [niquests.Session] that makes it super easy to use REST-style APIs,
 with or without OAuth 2.x.
 
 Please note that despite the name, this library has no relationship with Google
 [oauth2client](https://github.com/googleapis/oauth2client) library.
 
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
-[![PyPi version](https://img.shields.io/pypi/v/requests_oauth2client)](https://pypi.org/project/requests_oauth2client/)
-[![Downloads](https://static.pepy.tech/badge/requests_oauth2client/month)](https://pepy.tech/project/requests_oauth2client)
-[![Supported Versions](https://img.shields.io/pypi/pyversions/requests_oauth2client.svg)](https://pypi.org/project/requests_oauth2client)
-[![PyPi license](https://badgen.net/pypi/license/requests_oauth2client/)](https://pypi.com/project/requests_oauth2client/)
-[![PyPI status](https://img.shields.io/pypi/status/requests_oauth2client.svg)](https://pypi.python.org/pypi/requests_oauth2client/)
-[![GitHub commits](https://badgen.net/github/commits/guillp/requests_oauth2client)](https://github.com/guillp/requests_oauth2client/commit/)
-[![GitHub latest commit](https://badgen.net/github/last-commit/guillp/requests_oauth2client)](https://github.com/guillp/requests_oauth2client/commit/)
+[![PyPi version](https://img.shields.io/pypi/v/niquests_oauth2client)](https://pypi.org/project/niquests_oauth2client/)
+[![Downloads](https://static.pepy.tech/badge/niquests_oauth2client/month)](https://pepy.tech/project/niquests_oauth2client)
+[![Supported Versions](https://img.shields.io/pypi/pyversions/niquests_oauth2client.svg)](https://pypi.org/project/niquests_oauth2client)
+[![PyPi license](https://badgen.net/pypi/license/niquests_oauth2client/)](https://pypi.com/project/niquests_oauth2client/)
+[![PyPI status](https://img.shields.io/pypi/status/niquests_oauth2client.svg)](https://pypi.python.org/pypi/niquests_oauth2client/)
+[![GitHub commits](https://badgen.net/github/commits/guillp/niquests_oauth2client)](https://github.com/guillp/niquests_oauth2client/commit/)
+[![GitHub latest commit](https://badgen.net/github/last-commit/guillp/niquests_oauth2client)](https://github.com/guillp/niquests_oauth2client/commit/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 # Documentation
 
-Full module documentation is available at https://guillp.github.io/requests_oauth2client/.
+Full module documentation is available at https://guillp.github.io/niquests_oauth2client/.
 
 # Installation
 
-`requests_oauth2client` is [available from PyPi](https://pypi.org/project/requests-oauth2client/), so installing it is
+`niquests_oauth2client` is [available from PyPi](https://pypi.org/project/niquests-oauth2client/), so installing it is
 as easy as:
 
 ```shell
-pip install requests_oauth2client
+pip install niquests_oauth2client
 ```
 
 # Usage
 
-Everything from `requests_oauth2client` is available from the root module, so you can import it like this:
+Everything from `niquests_oauth2client` is available from the root module, so you can import it like this:
 
 ```python
-from requests_oauth2client import *
+from niquests_oauth2client import *
 ```
 
 Or you can import individual objects from this package as usual. Note that importing `*` automatically imports
-`requests`, so no need to import it yourself.
+`niquests`, so no need to import it yourself.
 
 ## Calling APIs with Access Tokens
 
 If you have already obtained an access token for the API you want to call, you can convert it to an instance of
-[BearerToken]. Instances of this class work as a `requests` compatible auth handler.
+[BearerToken]. Instances of this class work as a `niquests` compatible auth handler.
 
 ```python
 import requests
-from requests_oauth2client import BearerToken
+from niquests_oauth2client import BearerToken
 
 token = BearerToken("my_access_token")
 resp = requests.get("https://my.protected.api/endpoint", auth=token)
@@ -97,7 +102,7 @@ and the credentials for your application, typically a `client_id` and a `client_
 AS:
 
 ```python
-from requests_oauth2client import OAuth2Client
+from niquests_oauth2client import OAuth2Client
 
 oauth2client = OAuth2Client(
     token_endpoint="https://url.to.the/token_endpoint",
@@ -137,7 +142,7 @@ These methods directly return a [BearerToken] if the request is successful, or r
 You can create such a [BearerToken] yourself if needed:
 
 ```python
-from requests_oauth2client import BearerToken
+from niquests_oauth2client import BearerToken
 
 bearer_token = BearerToken(access_token="an_access_token", expires_in=60)
 print(bearer_token)
@@ -155,28 +160,28 @@ print(bearer_token.expires_in)
 Note that the `expires_in` indicator here is not static. It keeps track of the token lifetime, in seconds, and is
 calculated as the time flies. The actual static expiration date is accessible with the `expires_at` property. You can
 check if a token is expired with
-[bearer_token.is_expired()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.tokens.BearerToken.is_expired).
+[bearer_token.is_expired()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.tokens.BearerToken.is_expired).
 
 You can use a [BearerToken] instance anywhere you can use an access_token as string.
 
-### Using OAuth2Client as a requests Auth Handler
+### Using OAuth2Client as a niquests Auth Handler
 
 Using [OAuth2Client] directly is useful for testing or debugging OAuth2.x flows, but it may not be suitable for actual
 applications where tokens must be obtained, used during their lifetime, then obtained again or refreshed once they are
-expired. `requests_oauth2client` contains several [requests] compatible Auth Handlers (as subclasses of
-[requests.auth.AuthBase](https://requests.readthedocs.io/en/latest/user/advanced/#custom-authentication)), that will
+expired. `niquests_oauth2client` contains several [niquests] compatible Auth Handlers (as subclasses of
+[niquests.auth.AuthBase](https://niquests.readthedocs.io/en/latest/user/authentication.html#new-forms-of-authentication)), that will
 take care of obtaining tokens when required, then will cache those tokens until they are expired, and will obtain new
-ones (or refresh them, when possible), once the initial token is expired. Those are best used with a [requests.Session],
+ones (or refresh them, when possible), once the initial token is expired. Those are best used with a [niquests.Session],
 or an [ApiClient], which is a wrapper around `Session` with a few enhancements as described below.
 
 ### Client Credentials grant
 
 To send a request using the Client Credentials grant, use the
-[.client_credentials()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client.client_credentials)
+[.client_credentials()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client.client_credentials)
 method, providing the necessary parameters as keyword arguments in the token request.
 
 ```python
-from requests_oauth2client import OAuth2Client
+from niquests_oauth2client import OAuth2Client
 
 oauth2client = OAuth2Client(
     token_endpoint="https://url.to.the/token_endpoint",
@@ -201,12 +206,12 @@ fulfill your request.
 #### As Auth Handler
 
 You can use the
-[OAuth2ClientCredentialsAuth](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.auth.OAuth2ClientCredentialsAuth)
+[OAuth2ClientCredentialsAuth](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.auth.OAuth2ClientCredentialsAuth)
 auth handler. It takes an `OAuth2Client` as parameter, and the additional kwargs to pass to the token endpoint:
 
 ```python
 import requests
-from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
+from niquests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 
 oauth2client = OAuth2Client(
     token_endpoint="https://url.to.the/token_endpoint",
@@ -231,7 +236,7 @@ resp = session.get("https://myapi.local/resource")
 Once again, extra parameters such as `scope`, `resource` or `audience` are allowed if required.
 
 When you send your first request,
-[OAuth2ClientCredentialsAuth](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.auth.OAuth2ClientCredentialsAuth)
+[OAuth2ClientCredentialsAuth](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.auth.OAuth2ClientCredentialsAuth)
 will automatically retrieve an access token from the AS using the Client Credentials grant, then will include it in the
 request. Next requests will use the same token, as long as it is valid. A new token will be automatically retrieved once
 the previous one is expired.
@@ -241,7 +246,7 @@ obtained. This may help getting continuous access to the API when the client and
 Use the parameter `leeway` to `OAuth2ClientCredentialsAuth`:
 
 ```python
-from requests_oauth2client import OAuth2ClientCredentialsAuth
+from niquests_oauth2client import OAuth2ClientCredentialsAuth
 
 auth = OAuth2ClientCredentialsAuth(
     oauth2client,
@@ -280,7 +285,7 @@ automatically. Then you can generate valid Authorization Requests by calling the
 the request specific parameters, such as `scope`, `state`, `nonce` as parameter:
 
 ```python
-from requests_oauth2client import OAuth2Client
+from niquests_oauth2client import OAuth2Client
 
 client = OAuth2Client(
     token_endpoint="https://url.to.the/token_endoint",
@@ -343,7 +348,7 @@ Once you have obtained the AS response, containing an authorization code, your a
 Token(s).
 
 To exchange a code for Access and/or ID tokens, use the
-[OAuth2Client.authorization_code()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client.authorization_code)
+[OAuth2Client.authorization_code()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client.authorization_code)
 method. If you have obtained an AuthorizationResponse as described above, you can simply do:
 
 ```python
@@ -366,12 +371,12 @@ token = oauth2client.authorization_code(
 #### As Auth Handler
 
 The
-[OAuth2AuthorizationCodeAuth](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.auth.OAuth2AuthorizationCodeAuth)
+[OAuth2AuthorizationCodeAuth](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.auth.OAuth2AuthorizationCodeAuth)
 handler takes an [OAuth2Client] and an authorization code as parameter, plus whatever additional keyword parameters are
 required by your Authorization Server:
 
 ```python
-from requests_oauth2client import OAuth2Client, ApiClient, OAuth2AuthorizationCodeAuth
+from niquests_oauth2client import OAuth2Client, ApiClient, OAuth2AuthorizationCodeAuth
 
 oauth2client = OAuth2Client(
     token_endpoint="https://url.to.the/token_endpoint",
@@ -391,13 +396,13 @@ api_client = ApiClient(
 resp = api_client.post(data={...})
 ```
 
-[OAuth2AuthorizationCodeAuth](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.auth.OAuth2AuthorizationCodeAuth)
+[OAuth2AuthorizationCodeAuth](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.auth.OAuth2AuthorizationCodeAuth)
 will take care of refreshing the token automatically once it is expired, using the refresh token, if available.
 
 ### Note on AuthorizationRequest
 
 Authorization Requests generated by `OAuth2Client.authorization_request()` are instance of the class
-[`AuthorizationRequest`](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.authorization_request.AuthorizationRequest).
+[`AuthorizationRequest`](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.authorization_request.AuthorizationRequest).
 You can also use that class directly to generate your requests, but in that case you need to supply your Authorization
 Endpoint URI, your `client_id`, `redirect_uri`, etc. You can access every parameter from an `AuthorizationRequest`
 instance, as well as the generated `code_verifier`, as attributes of this instance. Once an Authorization Request URL is
@@ -405,7 +410,7 @@ generated, it your application responsibility to redirect or otherwise send the 
 `webbrowser` module from Python standard library to do so. Here is an example for generating Authorization Requests:
 
 ```python
-from requests_oauth2client import AuthorizationRequest
+from niquests_oauth2client import AuthorizationRequest
 
 az_request = AuthorizationRequest(
     "https://url.to.the/authorization_endpoint",
@@ -439,7 +444,7 @@ Helpers for the Device Authorization Grant are also included. To get device and 
 (including Device Code, User Code, Verification URI, etc.), then pooling the Token Endpoint:
 
 ```python
-from requests_oauth2client import (
+from niquests_oauth2client import (
     OAuth2Client,
     DeviceAuthorizationPoolingJob,
     BearerToken,
@@ -473,18 +478,18 @@ while resp is None:
 assert isinstance(resp, BearerToken)
 ```
 
-[DeviceAuthorizationPoolingJob](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.device_authorization.DeviceAuthorizationPoolingJob)
+[DeviceAuthorizationPoolingJob](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.device_authorization.DeviceAuthorizationPoolingJob)
 will automatically obey the pooling period. Everytime you call `pool_job()`, it will wait the appropriate number of
 seconds as indicated by the AS, and will apply slow-down requests.
 
 #### As Auth Handler
 
 Use
-[OAuth2DeviceCodeAuth](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.auth.OAuth2DeviceCodeAuth)
+[OAuth2DeviceCodeAuth](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.auth.OAuth2DeviceCodeAuth)
 as auth handler to exchange a device code for an access token:
 
 ```python
-from requests_oauth2client import ApiClient, OAuth2DeviceCodeAuth, OAuth2Client
+from niquests_oauth2client import ApiClient, OAuth2DeviceCodeAuth, OAuth2Client
 
 client = OAuth2Client(
     token_endpoint="https://url.to.the/token_endpoint",
@@ -517,7 +522,7 @@ To initiate a BackChannel Authentication against the dedicated endpoint, read th
 Endpoint until the end-user successfully authenticates:
 
 ```python
-from requests_oauth2client import (
+from niquests_oauth2client import (
     OAuth2Client,
     BearerToken,
     BackChannelAuthenticationPoolingJob,
@@ -555,11 +560,11 @@ Hints by the AS to slow down pooling will automatically be obeyed.
 ### Token Exchange
 
 To send a token exchange request, use the
-[OAuth2Client.token_exchange()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client.token_exchange)
+[OAuth2Client.token_exchange()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client.token_exchange)
 method:
 
 ```python
-from requests_oauth2client import OAuth2Client, ClientSecretJwt
+from niquests_oauth2client import OAuth2Client, ClientSecretJwt
 
 client = OAuth2Client(
     "https://url.to.the/token_endpoint",
@@ -587,7 +592,7 @@ token = client.token_exchange(
 Or to make it even easier, types can be guessed based on the supplied subject or actor token:
 
 ```python
-from requests_oauth2client import BearerToken, ClientSecretJwt, IdToken, OAuth2Client
+from niquests_oauth2client import BearerToken, ClientSecretJwt, IdToken, OAuth2Client
 
 client = OAuth2Client(
     "https://url.to.the/token_endpoint",
@@ -606,7 +611,7 @@ token = client.token_exchange(
 
 ## Supported Client Authentication Methods
 
-`requests_oauth2client` supports several client authentication methods, as defined in multiple OAuth2.x standards. You
+`niquests_oauth2client` supports several client authentication methods, as defined in multiple OAuth2.x standards. You
 select the appropriate method to use when initializing your [OAuth2Client], with the `auth` parameter. Once initialized,
 a client will automatically use the configured authentication method every time it sends a requested to an endpoint that
 requires client authentication. You don't have anything else to do afterwards.
@@ -615,11 +620,11 @@ requires client authentication. You don't have anything else to do afterwards.
 
 With **client_secret_basic**, `client_id` and `client_secret` are included in clear-text in the `Authorization` header
 when sending requests to the Token Endpoint. To use it, just pass a
-[`ClientSecretBasic(client_id, client_secret)`](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client_authentication.ClientSecretBasic)
+[`ClientSecretBasic(client_id, client_secret)`](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client_authentication.ClientSecretBasic)
 as `auth` parameter:
 
 ```python
-from requests_oauth2client import OAuth2Client, ClientSecretBasic
+from niquests_oauth2client import OAuth2Client, ClientSecretBasic
 
 client = OAuth2Client(
     "https://url.to.the/token_endpoint",
@@ -631,12 +636,12 @@ client = OAuth2Client(
 
 With **client_secret_post**, `client_id` and `client_secret` are included as part of the body form data. To use it, pass
 a
-[`ClientSecretPost(client_id, client_secret)`](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client_authentication.ClientSecretPost)
+[`ClientSecretPost(client_id, client_secret)`](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client_authentication.ClientSecretPost)
 as `auth` parameter. This is the default when you pass a tuple `(client_id, client_secret)` as `auth` when initializing
 an `OAuth2Client`:
 
 ```python
-from requests_oauth2client import OAuth2Client, ClientSecretPost
+from niquests_oauth2client import OAuth2Client, ClientSecretPost
 
 client = OAuth2Client(
     "https://url.to.the/token_endpoint",
@@ -658,11 +663,11 @@ oauth2client = OAuth2Client(
 
 With **client_secret_jwt**, the client generates an ephemeral JWT assertion including information about itself
 (client_id), the AS (url of the endpoint), and an expiration date a few seconds in the future. To use it, pass a
-[`ClientSecretJwt(client_id, client_secret)`](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client_authentication.ClientSecretJwt)
+[`ClientSecretJwt(client_id, client_secret)`](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client_authentication.ClientSecretJwt)
 as `auth` parameter. Assertion generation is entirely automatic, you don't have anything to do:
 
 ```python
-from requests_oauth2client import OAuth2Client, ClientSecretJwt
+from niquests_oauth2client import OAuth2Client, ClientSecretJwt
 
 client = OAuth2Client(
     "https://url.to.the/token_endpoint",
@@ -680,11 +685,11 @@ With **private_key_jwt**, client uses a JWT assertion that is just like the one 
 signed with an _asymmetric_ key. To use it, you need a private signing key, in a `dict` that matches the JWK format, or
 as an instance of `jwskate.Jwk`. The matching public key must be registered for your client on AS side. Once you have
 that, using this auth method is simple with the
-[`PrivateKeyJwt(client_id, private_jwk)`](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client_authentication.PrivateKeyJwt)
+[`PrivateKeyJwt(client_id, private_jwk)`](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client_authentication.PrivateKeyJwt)
 auth handler:
 
 ```python
-from requests_oauth2client import OAuth2Client, PrivateKeyJwt
+from niquests_oauth2client import OAuth2Client, PrivateKeyJwt
 
 private_jwk = {
     "kid": "mykid",
@@ -721,10 +726,10 @@ transmitting the Client Secret, which is a shared key that must be considered as
 
 The latest Client Authentication Method, **none**, is for Public Clients which do not authenticate to the Token
 Endpoint. Those clients only include their `client_id` in body form data, without any authentication credentials. Use
-[`PublicApp(client_id)`](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client_authentication.PublicApp):
+[`PublicApp(client_id)`](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client_authentication.PublicApp):
 
 ```python
-from requests_oauth2client import OAuth2Client, PublicApp
+from niquests_oauth2client import OAuth2Client, PublicApp
 
 client = OAuth2Client(
     "https://url.to.the/token_endpoint", auth=PublicApp("app_client_id")
@@ -737,14 +742,14 @@ The [OAuth2Client] class provides methods for sending revocation requests to a R
 you need to provide the Revocation Endpoint URI when creating an instance of [OAuth2Client].
 The available methods for revoking tokens are:
 
-- [revoke_token()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client.revoke_token): Revokes a token by providing the token value and an optional token_type_hint.
-- [revoke_access_token()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client.revoke_access_token): Revokes an access token by providing the token value.
-- [revoke_refresh_token()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client.revoke_refresh_token): Revokes a refresh token by providing the token value.
+- [revoke_token()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client.revoke_token): Revokes a token by providing the token value and an optional token_type_hint.
+- [revoke_access_token()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client.revoke_access_token): Revokes an access token by providing the token value.
+- [revoke_refresh_token()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client.revoke_refresh_token): Revokes a refresh token by providing the token value.
 
 Here is an example of how to use these methods:
 
 ```python
-from requests_oauth2client import OAuth2Client, ClientSecretJwt
+from niquests_oauth2client import OAuth2Client, ClientSecretJwt
 
 oauth2client = OAuth2Client(
     token_endpoint="https://url.to.the/token_endpoint",
@@ -765,11 +770,11 @@ return `False`. If the Authorization Server returns a standard error, an excepti
 
 The [OAuth2Client] class also supports sending requests to a Token Introspection Endpoint.
 To use this feature, you need to provide the Introspection Endpoint URI when creating an instance of [OAuth2Client].
-The [introspect_token()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client.instrospect_token())
+The [introspect_token()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client.instrospect_token())
 method is then available for introspecting tokens:
 
 ```python
-from requests_oauth2client import OAuth2Client, ClientSecretJwt
+from niquests_oauth2client import OAuth2Client, ClientSecretJwt
 
 oauth2client = OAuth2Client(
     token_endpoint="https://url.to.the/token_endpoint",
@@ -786,11 +791,11 @@ The `introspect_token()` method returns the data returned by the introspection e
 
 The [OAuth2Client] class also supports sending requests to a UserInfo Endpoint.
 To use this feature, you need to provide the UserInfo Endpoint URI when creating an instance of [OAuth2Client]
-The [userinfo()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client.userinfo)
+The [userinfo()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client.userinfo)
 method is then available for retrieving user information:
 
 ```python
-from requests_oauth2client import OAuth2Client, ClientSecretJwt
+from niquests_oauth2client import OAuth2Client, ClientSecretJwt
 
 oauth2client = OAuth2Client(
     token_endpoint="https://url.to.the/token_endpoint",
@@ -806,11 +811,11 @@ The `userinfo()` method returns the data returned by the userinfo endpoint, deco
 ## Initializing an `OAuth2Client` from a discovery document
 
 You can initialize an [OAuth2Client] with the endpoint URIs mentioned in a standardised discovery document using the
-[OAuth2Client.from_discovery_endpoint()](https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client.from_discovery_document)
+[OAuth2Client.from_discovery_endpoint()](https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client.from_discovery_document)
 class method:
 
 ```python
-from requests_oauth2client import OAuth2Client, ClientSecretJwt
+from niquests_oauth2client import OAuth2Client, ClientSecretJwt
 
 oauth2client = OAuth2Client.from_discovery_endpoint(
     "https://url.to.the.as/.well-known/openid-configuration",
@@ -840,7 +845,7 @@ check will be made to ensure that the `issuer` from the retrieved metadata docum
 - or enable `DPoP` by default by passing `dpop_bound_access_tokens=True` when initializing your client.
 
 ```python
-from requests_oauth2client import DPoPToken, OAuth2Client
+from niquests_oauth2client import DPoPToken, OAuth2Client
 
 oauth2client = OAuth2Client.from_discovery_endpoint(
     issuer="https://as.local",
@@ -862,21 +867,21 @@ assert isinstance(token, DPoPToken)
 
 ### About `DPoPToken`
 
-`DPoPToken` is actually a `BearerToken` subclass. If you use it as a `requests` Auth Handler, it will take care of
+`DPoPToken` is actually a `BearerToken` subclass. If you use it as a `niquests` Auth Handler, it will take care of
 adding a `DPoP` proof to the request headers, in addition to the access token.
 
-Since it is a `BearerToken` subclass, it is fully compatible with the `requests` compatible auth handlers provided by
-`requests_oauth2client`, such as `OAuth2ClientCredentialsAuth`, `OAuth2AccessTokenAuth`, etc. So you may use DPoP with
+Since it is a `BearerToken` subclass, it is fully compatible with the `niquests` compatible auth handlers provided by
+`niquests_oauth2client`, such as `OAuth2ClientCredentialsAuth`, `OAuth2AccessTokenAuth`, etc. So you may use DPoP with
 those auth handlers like this:
 
 ```python
 import requests
-from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth, PrivateKeyJwt
+from niquests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth, PrivateKeyJwt
 
 client = OAuth2Client.from_discovery_endpoint(
     issuer="https://my.issuer.local",
     auth=PrivateKeyJwt("client_id", "client_secret"),
-    dpop_bound_access_tokens=True, # enable DPoP by default
+    dpop_bound_access_tokens=True,  # enable DPoP by default
 )
 
 session = requests.Session()
@@ -904,7 +909,7 @@ using `DPoPKey.generate()`, or by initializing an instance with a key that you p
 ```python
 from cryptography.hazmat.primitives.asymmetric import rsa
 import jwskate
-from requests_oauth2client import DPoPKey, DPoPToken, OAuth2Client
+from niquests_oauth2client import DPoPKey, DPoPToken, OAuth2Client
 
 oauth2client = OAuth2Client.from_discovery_endpoint(
     issuer="https://as.local",
@@ -914,7 +919,8 @@ oauth2client = OAuth2Client.from_discovery_endpoint(
 
 dpop_key = DPoPKey.generate(alg="RS512")  # generate a new DPoP key with an alg of your choice
 # or, for testing purposes only, your can load your own key
-dpop_key = DPoPKey(private_key=jwskate.Jwk({"kty": "EC", "crv": "P-256", "alg": "ES256", "x": "...", "y": "...", "d": "..."}))
+dpop_key = DPoPKey(
+    private_key=jwskate.Jwk({"kty": "EC", "crv": "P-256", "alg": "ES256", "x": "...", "y": "...", "d": "..."}))
 # or, any key material supported by `jwskate` is supported, so you can also use `cryptography` keys directly,
 # but you need to specify the signature `alg` since it is not part of the key itself
 dpop_key = DPoPKey(private_key=rsa.generate_private_key(public_exponent=65537, key_size=2048), alg="RS256")
@@ -937,28 +943,29 @@ returned by the AS, and then generates proofs and includes those proofs into HTT
 
 You may use `DPoPKey.generate` as a helper method for that, or implement your own generator:
 
-
 ```python
 import secrets
-from requests_oauth2client import DPoPKey, DPoPToken, OAuth2Client
+from niquests_oauth2client import DPoPKey, DPoPToken, OAuth2Client
+
 
 class CustomDPoPToken(DPoPToken):
     """A custom DPoP token class that places the DPoP proof and token into a non-standard header."""
     AUTHORIZATION_HEADER = "X-Custom-Auth"
     DPOP_HEADER = "X-DPoP"
 
+
 oauth2client = OAuth2Client.from_discovery_endpoint(
     issuer="https://as.local",
     client_id="client_id", client_secret="client_secret",
     dpop_bound_access_tokens=True,  # enable DPoP by default
-    dpop_alg="RS256", # choose the signing alg to use, and it will automatically determine the key type to generate.
+    dpop_alg="RS256",  # choose the signing alg to use, and it will automatically determine the key type to generate.
     dpop_key_generator=lambda alg: DPoPKey.generate(
         alg=alg,
         # those other parameters are for feature testing the AS, or for workarounding AS bugs:
-        jwt_typ="jwt+custom", # you can customize the `typ` that is included in DPoP proof headers
-        jti_generator=lambda: secrets.token_urlsafe(24), # generate unique jti differently than the default UUIDs
-        iat_generator=lambda: 12532424, # override `iat` generation in DPoP proofs, here it will return a static value
-        dpop_token_class=CustomDPoPToken, # override the class that represents DPoP tokens
+        jwt_typ="jwt+custom",  # you can customize the `typ` that is included in DPoP proof headers
+        jti_generator=lambda: secrets.token_urlsafe(24),  # generate unique jti differently than the default UUIDs
+        iat_generator=lambda: 12532424,  # override `iat` generation in DPoP proofs, here it will return a static value
+        dpop_token_class=CustomDPoPToken,  # override the class that represents DPoP tokens
     )
 )
 ```
@@ -968,39 +975,39 @@ oauth2client = OAuth2Client.from_discovery_endpoint(
 Authorization Server provided `DPoP` nonces are automatically and transparently handled by `OAuth2Client`.
 
 Likewise, Resource Server provided `DPoP` nonces are supported when using the default `DPoPToken` class.
-This includes all requests-compatible auth handlers provided by `requests_oauth2client`, like `OAuth2AccessTokenAuth`,
+This includes all `niquests`-compatible auth handlers provided by `niquests_oauth2client`, like `OAuth2AccessTokenAuth`,
 `OAuth2ClientCredentialsAuth`, `OAuth2AuthorizationCodeAuth`, etc.
 
 As an example, see the sample below:
 
 ```python
-from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
+from niquests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 
-import requests
+import niquests
 
 oauth2client = OAuth2Client.from_discovery_endpoint(
     issuer="https://as.local",
     client_id="client_id", client_secret="client_secret",
 )
 
-response = requests.get(
+response = niquests.get(
     "https://my.api.local/endpoint",
     auth=OAuth2ClientCredentialsAuth(oauth2client, scope="my_scope", dpop=True),
 )
 ```
 
 Assuming that both the Authorization Server (at https://as.local) and the Resource Server (at https://my.api.local)
-require the use of `DPoP` nonces, then at least 4 different requests are sent as a result of the `requests.get()` call
+require the use of `DPoP` nonces, then at least 4 different requests are sent as a result of the `niquests.get()` call
 above:
 
 1. The first request is to get a token from the Authorization Server, here using a *Client Credentials* grant and
-including a DPoP proof. DPoP also works with all other grant types. That first requests does not include a nonce.
-Since the AS requires a DPoP nonce, it replies to that request with an `error=use_dpop_nonce` flag and a generated DPoP
-nonce.
+   including a DPoP proof. DPoP also works with all other grant types. That first requests does not include a nonce.
+   Since the AS requires a DPoP nonce, it replies to that request with an `error=use_dpop_nonce` flag and a generated DPoP
+   nonce.
 2. Second request is automatically sent to the AS, this time with a DPoP proof that contains the nonce provided by the AS.
-As a result, the AS returns a DPoP token.
+   As a result, the AS returns a DPoP token.
 3. Third request is sent to the target API, with the DPoP token obtained at step 2, and a DPoP proof that does not yet
-contain a `nonce`.
+   contain a `nonce`.
    The response from this call is a `401` with at least these 2 response headers:
 
    - a `WWW-Authenticate: DPoP error="use_dpop_nonce"` header, indicating that a DPoP `nonce` is requested,
@@ -1008,13 +1015,13 @@ contain a `nonce`.
 4. a request is sent again to the target API, this time with a DPoP proof that contains the RS provided `nonce`
    obtained at step 3. Target API then should accept that request, do its own business and return a `200` response.
 
-If you send multiple requests to the same API, instead of using individual calls to `requests.get()`, `requests.post()`
-etc., you should use a `requests.Session` or an `ApiClient`. It will make sure that the obtained access token and
+If you send multiple requests to the same API, instead of using individual calls to `niquests.get()`, `niquests.post()`
+etc., you should use a `niquests.Session` or an `ApiClient`. It will make sure that the obtained access token and
 DPoP nonce(s) are reused as long as they are valid, which avoid repeating calls 1 and 2 unnecessarily and consuming more
 tokens and nonces than necessary:
 
 ```python
-from requests_oauth2client import ApiClient, OAuth2Client, OAuth2ClientCredentialsAuth
+from niquests_oauth2client import ApiClient, OAuth2Client, OAuth2ClientCredentialsAuth
 
 oauth2client = OAuth2Client.from_discovery_endpoint(
     issuer="https://as.local",
@@ -1023,10 +1030,12 @@ oauth2client = OAuth2Client.from_discovery_endpoint(
 )
 
 api = ApiClient("https://my.api.local/", auth=OAuth2ClientCredentialsAuth(oauth2client, scope="my_scope", dpop=True))
-response1 = api.get("endpoint") # the first call will trigger requests 1. 2. 3. 4. like above
-response2 = api.post("other_endpoint") # next calls will reuse the same token and DPoP nonces as long as they are valid.
+response1 = api.get("endpoint")  # the first call will trigger requests 1. 2. 3. 4. like above
+response2 = api.post(
+    "other_endpoint")  # next calls will reuse the same token and DPoP nonces as long as they are valid.
 # some time later
-response3 = api.get("other_endpoint") # new tokens and DPoP nonces will automatically be obtained when the first ones are expired
+response3 = api.get(
+    "other_endpoint")  # new tokens and DPoP nonces will automatically be obtained when the first ones are expired
 ```
 
 AS and RS provided nonces are memoized independently by the `DPoPToken` instance, so the amount of "extra" requests to
@@ -1035,15 +1044,15 @@ obtain new DPoP nonces should be minimal.
 ## Specialized API Client
 
 Using APIs usually involves multiple endpoints under the same root url, with a common authentication method. To make it
-easier, `requests_oauth2client` includes a [requests.Session] wrapper called [ApiClient], which takes the root API url
+easier, `niquests_oauth2client` includes a [niquests.Session] wrapper called [ApiClient], which takes the root API url
 as parameter on initialization. You can then send requests to different endpoints by passing their relative path instead
 of the full url. [ApiClient] also accepts an `auth` parameter with an AuthHandler. You can pass any of the OAuth2 Auth
-Handler from this module, or any [requests]-compatible
-[Authentication Handler](https://requests.readthedocs.io/en/latest/user/advanced/#custom-authentication). Which makes it
-very easy to call APIs that are protected with an OAuth2 Client Credentials Grant:
+Handler from this module, or any `niquests`-compatible
+[Authentication Handler](https://niquests.readthedocs.io/en/latest/user/authentication.html). Which makes it
+straightforward to call APIs that are protected with an OAuth2 Client Credentials Grant:
 
 ```python
-from requests_oauth2client import OAuth2Client, ApiClient, OAuth2ClientCredentialsAuth
+from niquests_oauth2client import OAuth2Client, ApiClient, OAuth2ClientCredentialsAuth
 
 oauth2client = OAuth2Client(
     "https://url.to.the/token_endpoint", client_id="client_id", client_secret="client_secret"
@@ -1085,7 +1094,7 @@ Both `__getattr__` and `__getitem__` return a new `ApiClient` initialised on the
 multiple sub-resources on the same API this way:
 
 ```python
-from requests_oauth2client import ApiClient
+from niquests_oauth2client import ApiClient
 
 api = ApiClient("https://myapi.local")
 users_api = api.users
@@ -1099,7 +1108,7 @@ resources = resources_api.get()  # GET https://myapi.local/resources
 passing `raise_for_status=False` when initializing your [ApiClient]:
 
 ```python
-from requests_oauth2client import ApiClient
+from niquests_oauth2client import ApiClient
 
 api = ApiClient(
     "http://httpstat.us", raise_for_status=False
@@ -1116,12 +1125,12 @@ You may override this at request time:
 resp = api.get("500", raise_for_status=True)
 ```
 
-You can access the underlying `requests.Session` with the session attribute, and you can provide an already existing and
+You can access the underlying `niquests.Session` with the session attribute, and you can provide an already existing and
 configured `Session` instance at init time:
 
 ```python
 import requests
-from requests_oauth2client import ApiClient
+from niquests_oauth2client import ApiClient
 
 session = requests.Session()
 session.proxies = {"https": "http://localhost:3128"}
@@ -1131,7 +1140,7 @@ assert api.session == session
 
 ## Vendor-Specific clients
 
-`requests_oauth2client` is flexible enough to handle most use cases, so you should be able to use any AS by any vendor
+`niquests_oauth2client` is flexible enough to handle most use cases, so you should be able to use any AS by any vendor
 as long as it supports OAuth 2.0.
 
 You can however create a subclass of [OAuth2Client] or [ApiClient] to make it easier to use with specific Authorization
@@ -1140,7 +1149,7 @@ Servers or APIs. [OAuth2Client] has several extensibility points in the form of 
 etc.
 
 ```python
-from requests_oauth2client.vendor_specific import Auth0
+from niquests_oauth2client.vendor_specific import Auth0
 
 a0client = Auth0.client(
     "mytenant.eu", client_id="client_id", client_secret="client_secret"
@@ -1156,8 +1165,8 @@ a0mgmt = Auth0.management_api_client(
 myusers = a0mgmt.get("users")
 ```
 
-[apiclient]: https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.api_client.ApiClient
-[bearertoken]: https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.tokens.BearerToken
-[oauth2client]: https://guillp.github.io/requests_oauth2client/api/#requests_oauth2client.client.OAuth2Client
-[requests]: https://requests.readthedocs.io/en/latest/
-[requests.session]: https://requests.readthedocs.io/en/latest/api/#requests.Session
+[apiclient]: https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.api_client.ApiClient
+[bearertoken]: https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.tokens.BearerToken
+[oauth2client]: https://guillp.github.io/niquests_oauth2client/api/#niquests_oauth2client.client.OAuth2Client
+[niquests]: https://niquests.readthedocs.io/en/latest/
+[niquests.session]: https://niquests.readthedocs.io/en/latest/user/advanced.html#session-objects

@@ -87,7 +87,7 @@ class DeviceAuthorizationPoolingJob(BaseTokenEndpointPoolingJob):
 
     Example:
         ```python
-        from requests_oauth2client import DeviceAuthorizationPoolingJob, OAuth2Client
+        from niquests_oauth2client import DeviceAuthorizationPoolingJob, OAuth2Client
 
         client = OAuth2Client(token_endpoint="https://my.as.local/token", auth=("client_id", "client_secret"))
         pooler = DeviceAuthorizationPoolingJob(client=client, device_code="my_device_code")
@@ -126,11 +126,11 @@ class DeviceAuthorizationPoolingJob(BaseTokenEndpointPoolingJob):
     def token_request(self) -> BearerToken:
         """Implement the Device Code token request.
 
-        This actually calls [OAuth2Client.device_code(device_code)][requests_oauth2client.OAuth2Client.device_code]
+        This actually calls [OAuth2Client.device_code(device_code)][niquests_oauth2client.OAuth2Client.device_code]
         on `self.client`.
 
         Returns:
-            a [BearerToken][requests_oauth2client.tokens.BearerToken]
+            a [BearerToken][niquests_oauth2client.tokens.BearerToken]
 
         """
         return self.client.device_code(self.device_code, requests_kwargs=self.requests_kwargs, **self.token_kwargs)

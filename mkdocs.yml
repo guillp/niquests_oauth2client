@@ -1,10 +1,10 @@
-site_name: requests_oauth2client
+site_name: niquests_oauth2client
 # site_url: http://www.jieyu.ai
-repo_url: https://github.com/guillp/requests_oauth2client
-repo_name: requests_oauth2client
+repo_url: https://github.com/guillp/niquests_oauth2client
+repo_name: niquests_oauth2client
 strict: true
 watch:
-  - requests_oauth2client
+  - niquests_oauth2client
   - README.md
 nav:
   - Home: index.md
@@ -71,12 +71,12 @@ plugins:
             show_root_heading: true
             show_submodules: true
           import:
-            - https://requests.readthedocs.io/en/master/objects.inv
+            #- https://niquests.readthedocs.io/en/master/objects.inv
             - https://guillp.github.io/jwskate/objects.inv
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/guillp/requests_oauth2client
+      link: https://github.com/guillp/niquests_oauth2client
       name: Github
     - icon: material/email
-      link: "mailto:guill.p.linux@gmail.com"
+      link: "mailto:guillp.dev@pm.me"

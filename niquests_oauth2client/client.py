@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import warnings
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Iterable, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, TypeVar
 
-import requests
+import niquests
 from attrs import Attribute, field, frozen
 from jwskate import Jwk, JwkSet, Jwt, SignatureAlgs
 from typing_extensions import Self
@@ -54,6 +54,7 @@ from .tokens import BearerToken, IdToken, TokenResponse, TokenType
 from .utils import InvalidUri, validate_endpoint_uri, validate_issuer_uri
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from types import TracebackType
 
     from mypy_extensions import DefaultNamedArg
@@ -222,7 +223,7 @@ class OAuth2Client:
 
     This class is not intended to help with the end-user authentication or any request that goes in
     a browser. For authentication requests, see
-    [AuthorizationRequest][requests_oauth2client.authorization_request.AuthorizationRequest]. You
+    [AuthorizationRequest][niquests_oauth2client.authorization_request.AuthorizationRequest]. You
     may use the method `authorization_request()` to generate `AuthorizationRequest`s with the
     preconfigured `authorization_endpoint`, `client_id` and `redirect_uri' from this client.
 
@@ -231,13 +232,13 @@ class OAuth2Client:
         auth: the authentication handler to use for client authentication on the token endpoint.
             Can be:
 
-            - a [requests.auth.AuthBase][] instance (which will be used as-is)
+            - a [niquests.auth.AuthBase][] instance (which will be used as-is)
             - a tuple of `(client_id, client_secret)` which will initialize an instance
-            of [ClientSecretPost][requests_oauth2client.client_authentication.ClientSecretPost]
+            of [ClientSecretPost][niquests_oauth2client.client_authentication.ClientSecretPost]
             - a `(client_id, jwk)` to initialize
-            a [PrivateKeyJwt][requests_oauth2client.client_authentication.PrivateKeyJwt],
+            a [PrivateKeyJwt][niquests_oauth2client.client_authentication.PrivateKeyJwt],
             - or a `client_id` which will
-            use [PublicApp][requests_oauth2client.client_authentication.PublicApp] authentication.
+            use [PublicApp][niquests_oauth2client.client_authentication.PublicApp] authentication.
 
         client_id: client ID (use either this or `auth`)
         client_secret: client secret (use either this or `auth`)
@@ -251,7 +252,7 @@ class OAuth2Client:
         device_authorization_endpoint: the Device Authorization Endpoint URI to use to authorize devices
         jwks_uri: the JWKS URI to use to obtain the AS public keys
         code_challenge_method: challenge method to use for PKCE (should always be 'S256')
-        session: a requests Session to use when sending HTTP requests.
+        session: a `niquests.Session` to use when sending HTTP requests.
             Useful if some extra parameters such as proxy or client certificate must be used
             to connect to the AS.
         token_class: a custom BearerToken class, if required
@@ -292,7 +293,7 @@ class OAuth2Client:
 
     """
 
-    auth: requests.auth.AuthBase
+    auth: niquests.auth.AuthBase
     token_endpoint: str = field()
     revocation_endpoint: str | None = field()
     introspection_endpoint: str | None = field()
@@ -310,7 +311,7 @@ class OAuth2Client:
     id_token_decryption_key: Jwk | None
     code_challenge_method: str | None
     authorization_response_iss_parameter_supported: bool
-    session: requests.Session
+    session: niquests.Session
     extra_metadata: dict[str, Any]
     testing: bool
 
@@ -340,7 +341,7 @@ class OAuth2Client:
         self,
         token_endpoint: str,
         auth: (
-            requests.auth.AuthBase | tuple[str, str] | tuple[str, Jwk] | tuple[str, dict[str, Any]] | str | None
+            niquests.auth.AuthBase | tuple[str, str] | tuple[str, Jwk] | tuple[str, dict[str, Any]] | str | None
         ) = None,
         *,
         client_id: str | None = None,
@@ -363,7 +364,7 @@ class OAuth2Client:
         code_challenge_method: str = CodeChallengeMethods.S256,
         authorization_response_iss_parameter_supported: bool = False,
         token_class: type[BearerToken] = BearerToken,
-        session: requests.Session | None = None,
+        session: niquests.Session | None = None,
         dpop_bound_access_tokens: bool = False,
         dpop_key_generator: Callable[[str], DPoPKey] = DPoPKey.generate,
         dpop_alg: str = SignatureAlgs.ES256,
@@ -399,7 +400,7 @@ class OAuth2Client:
             raise InvalidDPoPAlg(dpop_alg)
 
         if session is None:
-            session = requests.Session()
+            session = niquests.Session()
 
         self.__attrs_init__(
             testing=testing,
@@ -501,8 +502,8 @@ class OAuth2Client:
         self,
         endpoint: str,
         *,
-        on_success: Callable[[requests.Response, DefaultNamedArg(DPoPKey | None, "dpop_key")], T],
-        on_failure: Callable[[requests.Response, DefaultNamedArg(DPoPKey | None, "dpop_key")], T],
+        on_success: Callable[[niquests.Response, DefaultNamedArg(DPoPKey | None, "dpop_key")], T],
+        on_failure: Callable[[niquests.Response, DefaultNamedArg(DPoPKey | None, "dpop_key")], T],
         dpop_key: DPoPKey | None = None,
         accept: str = "application/json",
         method: str = "POST",
@@ -606,7 +607,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
                 - if `None`, defaults to `dpop_bound_access_tokens` configuration parameter for the client.
           dpop_key: a chosen `DPoPKey` for this request. If `None`, a new key will be generated automatically
                 with a call to this client `dpop_key_generator`.
-          **requests_kwargs: additional parameters for requests.post()
+          **requests_kwargs: additional parameters for niquests.post()
 
         Returns:
             the token endpoint response
@@ -628,10 +629,10 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
             **requests_kwargs,
         )
 
-    def parse_token_response(self, response: requests.Response, *, dpop_key: DPoPKey | None = None) -> BearerToken:
+    def parse_token_response(self, response: niquests.Response, *, dpop_key: DPoPKey | None = None) -> BearerToken:
         """Parse a Response returned by the Token Endpoint.
 
-        Invoked by [token_request][requests_oauth2client.client.OAuth2Client.token_request] to parse
+        Invoked by [token_request][niquests_oauth2client.client.OAuth2Client.token_request] to parse
         responses returned by the Token Endpoint. Those responses contain an `access_token` and
         additional attributes.
 
@@ -653,13 +654,13 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
 
     def on_token_error(
         self,
-        response: requests.Response,
+        response: niquests.Response,
         *,
         dpop_key: DPoPKey | None = None,  # noqa: ARG002
     ) -> BearerToken:
         """Error handler for `token_request()`.
 
-        Invoked by [token_request][requests_oauth2client.client.OAuth2Client.token_request] when the
+        Invoked by [token_request][niquests_oauth2client.client.OAuth2Client.token_request] when the
         Token Endpoint returns an error.
 
         Args:
@@ -717,7 +718,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
                 - if `None`, defaults to `dpop_bound_access_tokens` configuration parameter for the client.
             dpop_key: a chosen `DPoPKey` for this request. If `None`, a new key will be generated automatically
                 with a call to `dpop_key_generator`.
-            requests_kwargs: additional parameters for the call to requests
+            requests_kwargs: additional parameters for the call to niquests
             **token_kwargs: additional parameters that will be added in the form data for the token endpoint,
                  alongside `grant_type`.
 
@@ -768,7 +769,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
             dpop: Toggles DPoP binding for the Access Token,
                  even if Authorization Code DPoP binding was not initially done.
             dpop_key: A chosen DPoP key. Leave `None` to automatically generate a key, if `dpop` is `True`.
-            requests_kwargs: Additional parameters for the call to the underlying HTTP `requests` call.
+            requests_kwargs: Additional parameters for the call to the underlying HTTP `niquests` call.
             **token_kwargs: Additional parameters that will be added in the form data for the token endpoint,
                 alongside `grant_type`, `code`, etc.
 
@@ -807,7 +808,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
         Args:
             refresh_token: A refresh_token, as a string, or as a `BearerToken`.
                 That `BearerToken` must have a `refresh_token`.
-            requests_kwargs: Additional parameters for the call to `requests`.
+            requests_kwargs: Additional parameters for the call to `niquests`.
             **token_kwargs: Additional parameters for the token endpoint,
                 alongside `grant_type`, `refresh_token`, etc.
 
@@ -849,7 +850,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
             device_code: A device code, or a `DeviceAuthorizationResponse`.
             dpop: Toggles DPoP Binding. If `None`, defaults to `self.dpop_bound_access_tokens`.
             dpop_key: A chosen DPoP key. Leave `None` to have a new key generated for this request.
-            requests_kwargs: Additional parameters for the call to requests.
+            requests_kwargs: Additional parameters for the call to niquests.
             **token_kwargs: Additional parameters for the token endpoint, alongside `grant_type`, `device_code`, etc.
 
         Returns:
@@ -885,7 +886,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
 
         Args:
             auth_req_id: an authentication request ID, as returned by the AS
-            requests_kwargs: additional parameters for the call to requests
+            requests_kwargs: additional parameters for the call to niquests
             **token_kwargs: additional parameters for the token endpoint, alongside `grant_type`, `auth_req_id`, etc.
 
         Returns:
@@ -937,7 +938,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
             requested_token_type: A token type identifier for the requested token.
             dpop: Toggles DPoP Binding. If `None`, defaults to `self.dpop_bound_access_tokens`.
             dpop_key: A chosen DPoP key. Leave `None` to have a new key generated for this request.
-            requests_kwargs: Additional parameters to pass to the underlying `requests.post()` call.
+            requests_kwargs: Additional parameters to pass to the underlying `niquests.post()` call.
             **token_kwargs: Additional parameters to include in the request body.
 
         Returns:
@@ -988,7 +989,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
             assertion: A JWT (as an instance of `jwskate.Jwt` or as a `str`) to use as authorization grant.
             dpop: Toggles DPoP Binding. If `None`, defaults to `self.dpop_bound_access_tokens`.
             dpop_key: A chosen DPoP key. Leave `None` to have a new key generated for this request.
-            requests_kwargs: Additional parameters to pass to the underlying `requests.post()` call.
+            requests_kwargs: Additional parameters to pass to the underlying `niquests.post()` call.
             **token_kwargs: Additional parameters to include in the request body.
 
         Returns:
@@ -1027,7 +1028,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
             password: the resource owner password
             dpop: Toggles DPoP Binding. If `None`, defaults to `self.dpop_bound_access_tokens`.
             dpop_key: A chosen DPoP key. Leave `None` to have a new key generated for this request.
-            requests_kwargs: additional parameters to pass to the underlying `requests.post()` call.
+            requests_kwargs: additional parameters to pass to the underlying `niquests.post()` call.
             **token_kwargs: additional parameters to include in the request body.
 
         Returns:
@@ -1120,7 +1121,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
 
         Args:
             authorization_request: The authorization request to send.
-            requests_kwargs: Additional parameters for `requests.request()`.
+            requests_kwargs: Additional parameters for `niquests.request()`.
 
         Returns:
             The `RequestUriParameterAuthorizationRequest` initialized based on the AS response.
@@ -1139,14 +1140,14 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
 
     def parse_pushed_authorization_response(
         self,
-        response: requests.Response,
+        response: niquests.Response,
         *,
         dpop_key: DPoPKey | None = None,
     ) -> RequestUriParameterAuthorizationRequest:
         """Parse the response obtained by `pushed_authorization_request()`.
 
         Args:
-            response: The `requests.Response` returned by the PAR endpoint.
+            response: The `niquests.Response` returned by the PAR endpoint.
             dpop_key: The `DPoPKey` that was used to proof the token request, if any.
 
         Returns:
@@ -1167,7 +1168,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
 
     def on_pushed_authorization_request_error(
         self,
-        response: requests.Response,
+        response: niquests.Response,
         *,
         dpop_key: DPoPKey | None = None,  # noqa: ARG002
     ) -> RequestUriParameterAuthorizationRequest:
@@ -1214,7 +1215,7 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
             access_token: the access token to use
 
         Returns:
-            the [Response][requests.Response] returned by the userinfo endpoint.
+            the [Response][niquests.Response] returned by the userinfo endpoint.
 
         """
         if isinstance(access_token, str):
@@ -1226,14 +1227,14 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
             on_failure=self.on_userinfo_error,
         )
 
-    def parse_userinfo_response(self, resp: requests.Response, *, dpop_key: DPoPKey | None = None) -> Any:  # noqa: ARG002
+    def parse_userinfo_response(self, resp: niquests.Response, *, dpop_key: DPoPKey | None = None) -> Any:  # noqa: ARG002
         """Parse the response obtained by `userinfo()`.
 
-        Invoked by [userinfo()][requests_oauth2client.client.OAuth2Client.userinfo] to parse the
+        Invoked by [userinfo()][niquests_oauth2client.client.OAuth2Client.userinfo] to parse the
         response from the UserInfo endpoint, this will extract and return its JSON content.
 
         Args:
-            resp: a [Response][requests.Response] returned from the UserInfo endpoint.
+            resp: a [Response][niquests.Response] returned from the UserInfo endpoint.
             dpop_key: the `DPoPKey` that was used to proof the token request, if any.
 
         Returns:
@@ -1242,11 +1243,11 @@ keeps trying to obey the new DPoP `nonce` values as provided by the Authorizatio
         """
         return resp.json()
 
-    def on_userinfo_error(self, resp: requests.Response, *, dpop_key: DPoPKey | None = None) -> Any:  # noqa: ARG002
+    def on_userinfo_error(self, resp: niquests.Response, *, dpop_key: DPoPKey | None = None) -> Any:  # noqa: ARG002
         """Parse UserInfo error response.
 
         Args:
-            resp: a [Response][requests.Response] returned from the UserInfo endpoint.
+            resp: a [Response][niquests.Response] returned from the UserInfo endpoint.
             dpop_key: the `DPoPKey` that was used to proof the token request, if any.
 
         Returns:
@@ -1335,7 +1336,7 @@ An IdToken or a string representation of it is expected.
 
         Args:
             access_token: the access token to revoke
-            requests_kwargs: additional parameters for the underlying requests.post() call
+            requests_kwargs: additional parameters for the underlying niquests.post() call
             **revoke_kwargs: additional parameters to pass to the revocation endpoint
 
         """
@@ -1364,7 +1365,7 @@ An IdToken or a string representation of it is expected.
             revocation endpoint.
 
         Raises:
-            MissingRefreshToken: when `refresh_token` is a [BearerToken][requests_oauth2client.tokens.BearerToken]
+            MissingRefreshToken: when `refresh_token` is a [BearerToken][niquests_oauth2client.tokens.BearerToken]
                 but does not contain a `refresh_token`.
 
         """
@@ -1394,7 +1395,7 @@ An IdToken or a string representation of it is expected.
         Args:
             token: the token to revoke.
             token_type_hint: a token_type_hint to send to the revocation endpoint.
-            requests_kwargs: additional parameters to the underling call to requests.post()
+            requests_kwargs: additional parameters to the underling call to niquests.post()
             **revoke_kwargs: additional parameters to send to the revocation endpoint.
 
         Returns:
@@ -1426,13 +1427,13 @@ An IdToken or a string representation of it is expected.
             **requests_kwargs,
         )
 
-    def parse_revocation_response(self, response: requests.Response, *, dpop_key: DPoPKey | None = None) -> bool:  # noqa: ARG002
+    def parse_revocation_response(self, response: niquests.Response, *, dpop_key: DPoPKey | None = None) -> bool:  # noqa: ARG002
         """Parse reponses from the Revocation Endpoint.
 
         Since those do not return any meaningful information in a standardised fashion, this just returns `True`.
 
         Args:
-            response: the `requests.Response` as returned by the Revocation Endpoint.
+            response: the `niquests.Response` as returned by the Revocation Endpoint.
             dpop_key: the `DPoPKey` that was used to proof the token request, if any.
 
         Returns:
@@ -1442,14 +1443,14 @@ An IdToken or a string representation of it is expected.
         """
         return True
 
-    def on_revocation_error(self, response: requests.Response, *, dpop_key: DPoPKey | None = None) -> bool:  # noqa: ARG002
+    def on_revocation_error(self, response: niquests.Response, *, dpop_key: DPoPKey | None = None) -> bool:  # noqa: ARG002
         """Error handler for `revoke_token()`.
 
-        Invoked by [revoke_token()][requests_oauth2client.client.OAuth2Client.revoke_token] when the
+        Invoked by [revoke_token()][niquests_oauth2client.client.OAuth2Client.revoke_token] when the
         revocation endpoint returns an error.
 
         Args:
-            response: the `requests.Response` as returned by the Revocation Endpoint.
+            response: the `niquests.Response` as returned by the Revocation Endpoint.
             dpop_key: the `DPoPKey` that was used to proof the token request, if any.
 
         Returns:
@@ -1503,7 +1504,7 @@ An IdToken or a string representation of it is expected.
         Args:
             token: the token to instrospect
             token_type_hint: the `token_type_hint` to include in the request.
-            requests_kwargs: additional parameters to the underling call to requests.post()
+            requests_kwargs: additional parameters to the underling call to niquests.post()
             **introspect_kwargs: additional parameters to send to the introspection endpoint.
 
         Returns:
@@ -1545,18 +1546,18 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
 
     def parse_introspection_response(
         self,
-        response: requests.Response,
+        response: niquests.Response,
         *,
         dpop_key: DPoPKey | None = None,  # noqa: ARG002
     ) -> Any:
         """Parse Token Introspection Responses received by `introspect_token()`.
 
-        Invoked by [introspect_token()][requests_oauth2client.client.OAuth2Client.introspect_token]
+        Invoked by [introspect_token()][niquests_oauth2client.client.OAuth2Client.introspect_token]
         to parse the returned response. This decodes the JSON content if possible, otherwise it
         returns the response as a string.
 
         Args:
-            response: the [Response][requests.Response] as returned by the Introspection Endpoint.
+            response: the [Response][niquests.Response] as returned by the Introspection Endpoint.
             dpop_key: the `DPoPKey` that was used to proof the token request, if any.
 
         Returns:
@@ -1568,10 +1569,10 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
         except ValueError:
             return response.text
 
-    def on_introspection_error(self, response: requests.Response, *, dpop_key: DPoPKey | None = None) -> Any:  # noqa: ARG002
+    def on_introspection_error(self, response: niquests.Response, *, dpop_key: DPoPKey | None = None) -> Any:  # noqa: ARG002
         """Error handler for `introspect_token()`.
 
-        Invoked by [introspect_token()][requests_oauth2client.client.OAuth2Client.introspect_token]
+        Invoked by [introspect_token()][niquests_oauth2client.client.OAuth2Client.introspect_token]
         to parse the returned response in the case an error is returned.
 
         Args:
@@ -1634,7 +1635,7 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
              requested_expiry: the Requested Expiry, in seconds, to include in the request.
              private_jwk: the JWK to use to sign the request (optional)
              alg: the alg to use to sign the request, if the provided JWK does not include an "alg" parameter.
-             requests_kwargs: additional parameters for
+             requests_kwargs: additional parameters for the call to `niquests.post()`
              **ciba_kwargs: additional parameters to include in the request.
 
         Returns:
@@ -1696,14 +1697,14 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
 
     def parse_backchannel_authentication_response(
         self,
-        response: requests.Response,
+        response: niquests.Response,
         *,
         dpop_key: DPoPKey | None = None,  # noqa: ARG002
     ) -> BackChannelAuthenticationResponse:
         """Parse a response received by `backchannel_authentication_request()`.
 
         Invoked by
-        [backchannel_authentication_request()][requests_oauth2client.client.OAuth2Client.backchannel_authentication_request]
+        [backchannel_authentication_request()][niquests_oauth2client.client.OAuth2Client.backchannel_authentication_request]
         to parse the response returned by the BackChannel Authentication Endpoint.
 
         Args:
@@ -1725,14 +1726,14 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
 
     def on_backchannel_authentication_error(
         self,
-        response: requests.Response,
+        response: niquests.Response,
         *,
         dpop_key: DPoPKey | None = None,  # noqa: ARG002
     ) -> BackChannelAuthenticationResponse:
         """Error handler for `backchannel_authentication_request()`.
 
         Invoked by
-        [backchannel_authentication_request()][requests_oauth2client.client.OAuth2Client.backchannel_authentication_request]
+        [backchannel_authentication_request()][niquests_oauth2client.client.OAuth2Client.backchannel_authentication_request]
         to parse the response returned by the BackChannel Authentication Endpoint, when it is an
         error.
 
@@ -1774,7 +1775,7 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
 
         Args:
             **data: additional data to send to the Device Authorization Endpoint
-            requests_kwargs: additional parameters for `requests.request()`
+            requests_kwargs: additional parameters for `niquests.request()`
 
         Returns:
             a Device Authorization Response
@@ -1796,13 +1797,13 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
 
     def parse_device_authorization_response(
         self,
-        response: requests.Response,
+        response: niquests.Response,
         *,
         dpop_key: DPoPKey | None = None,  # noqa: ARG002
     ) -> DeviceAuthorizationResponse:
         """Parse a Device Authorization Response received by `authorize_device()`.
 
-        Invoked by [authorize_device()][requests_oauth2client.client.OAuth2Client.authorize_device]
+        Invoked by [authorize_device()][niquests_oauth2client.client.OAuth2Client.authorize_device]
         to parse the response returned by the Device Authorization Endpoint.
 
         Args:
@@ -1817,13 +1818,13 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
 
     def on_device_authorization_error(
         self,
-        response: requests.Response,
+        response: niquests.Response,
         *,
         dpop_key: DPoPKey | None = None,  # noqa: ARG002
     ) -> DeviceAuthorizationResponse:
         """Error handler for `authorize_device()`.
 
-        Invoked by [authorize_device()][requests_oauth2client.client.OAuth2Client.authorize_device]
+        Invoked by [authorize_device()][niquests_oauth2client.client.OAuth2Client.authorize_device]
         to parse the response returned by the Device Authorization Endpoint, when that response is
         an error.
 
@@ -1885,11 +1886,11 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
         url: str | None = None,
         issuer: str | None = None,
         *,
-        auth: requests.auth.AuthBase | tuple[str, str] | str | None = None,
+        auth: niquests.auth.AuthBase | tuple[str, str] | str | None = None,
         client_id: str | None = None,
         client_secret: str | None = None,
         private_key: Jwk | dict[str, Any] | None = None,
-        session: requests.Session | None = None,
+        session: niquests.Session | None = None,
         testing: bool = False,
         **kwargs: Any,
     ) -> OAuth2Client:
@@ -1912,7 +1913,7 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
           client_id: Client ID.
           client_secret: Client secret to use to authenticate the client.
           private_key: Private key to sign client assertions.
-          session: A `requests.Session` to use to retrieve the document and initialise the client with.
+          session: A `niquests.Session` to use to retrieve the document and initialise the client with.
           testing: If `True`, do not try to validate the issuer uri nor the endpoint urls
             that are part of the document.
           **kwargs: Additional keyword parameters to pass to `OAuth2Client`.
@@ -1923,11 +1924,11 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
         Raises:
           InvalidIssuer: If `issuer` is not using https, or contains credentials or fragment.
           InvalidParam: If neither `url` nor `issuer` are suitable urls.
-          requests.HTTPError: If an error happens while fetching the documents.
+          niquests.HTTPError: If an error happens while fetching the documents.
 
         Example:
             ```python
-            from requests_oauth2client import OAuth2Client
+            from niquests_oauth2client import OAuth2Client
 
             client = OAuth2Client.from_discovery_endpoint(
                 issuer="https://myserver.net",
@@ -1951,7 +1952,7 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
         if not testing:
             validate_endpoint_uri(url, path=False)
 
-        session = session or requests.Session()
+        session = session or niquests.Session()
         discovery = session.get(url).json()
 
         jwks_uri = discovery.get("jwks_uri")
@@ -1976,7 +1977,7 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
         discovery: dict[str, Any],
         issuer: str | None = None,
         *,
-        auth: requests.auth.AuthBase | tuple[str, str] | str | None = None,
+        auth: niquests.auth.AuthBase | tuple[str, str] | str | None = None,
         client_id: str | None = None,
         client_secret: str | None = None,
         private_key: Jwk | dict[str, Any] | None = None,
@@ -2007,7 +2008,7 @@ Invalid `token_type_hint`. To test arbitrary `token_type_hint` values, you must 
 
         Examples:
             ```python
-            from requests_oauth2client import OAuth2Client
+            from niquests_oauth2client import OAuth2Client
 
             client = OAuth2Client.from_discovery_document(
                 {
@@ -2030,7 +2031,7 @@ To disable endpoint uri validation, set `testing=True` when initializing your `O
             testing = True
         if issuer and discovery.get("issuer") != issuer:
             msg = f"""\
-Mismatching `issuer` value in discovery document (received '{discovery.get('issuer')}', expected '{issuer}')."""
+Mismatching `issuer` value in discovery document (received '{discovery.get("issuer")}', expected '{issuer}')."""
             raise InvalidParam(
                 msg,
                 issuer,

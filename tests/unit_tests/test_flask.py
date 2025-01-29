@@ -1,17 +1,18 @@
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 from urllib.parse import parse_qs
 
 import pytest
 from flask import request
 
-from requests_oauth2client import ApiClient, ClientSecretPost, OAuth2Client
-from tests.conftest import RequestsMocker
+from niquests_oauth2client import ApiClient, ClientSecretPost, OAuth2Client
+from tests.conftest import NiquestsMocker
 
 session_key = "session_key"
 
 
 def test_flask(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     token_endpoint: str,
     client_id: str,
     client_secret: str,
@@ -21,7 +22,7 @@ def test_flask(
     try:
         from flask import Flask
 
-        from requests_oauth2client.flask import FlaskOAuth2ClientCredentialsAuth
+        from niquests_oauth2client.flask import FlaskOAuth2ClientCredentialsAuth
     except ImportError:
         pytest.skip("Flask is not available")
 
@@ -45,11 +46,11 @@ def test_flask(
 
     access_token = "access_token"
     json_resp = {"status": "success"}
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         json={"access_token": access_token, "token_type": "Bearer", "expires_in": 3600},
     )
-    requests_mock.get(target_api, json=json_resp)
+    niquests_mock.get(target_api, json=json_resp)
 
     with app.test_client() as client:
         resp = client.get("/api?call=1")
@@ -64,7 +65,7 @@ def test_flask(
         resp = client.get("/api?call=3")
         assert resp.json == json_resp
 
-    token_request1 = requests_mock.request_history[0]
+    token_request1 = niquests_mock.request_history[0]
     assert token_request1.url == token_endpoint
     token_params = parse_qs(token_request1.text)
     assert token_params.get("client_id") == [client_id]
@@ -76,15 +77,15 @@ def test_flask(
         assert token_params.get("scope") == [" ".join(scope)]
     assert token_params.get("client_secret") == [client_secret]
 
-    api_request1 = requests_mock.request_history[1]
+    api_request1 = niquests_mock.request_history[1]
     assert api_request1.url == "https://myapi.local/root/?call=1"
     assert api_request1.headers.get("Authorization") == f"Bearer {access_token}"
 
-    api_request2 = requests_mock.request_history[2]
+    api_request2 = niquests_mock.request_history[2]
     assert api_request2.url == "https://myapi.local/root/?call=2"
     assert api_request2.headers.get("Authorization") == f"Bearer {access_token}"
 
-    token_request2 = requests_mock.request_history[3]
+    token_request2 = niquests_mock.request_history[3]
     assert token_request2.url == token_endpoint
     token_params = parse_qs(token_request2.text)
     assert token_params.get("client_id") == [client_id]
@@ -96,6 +97,6 @@ def test_flask(
         assert token_params.get("scope") == [" ".join(scope)]
     assert token_params.get("client_secret") == [client_secret]
 
-    api_request3 = requests_mock.request_history[4]
+    api_request3 = niquests_mock.request_history[4]
     assert api_request3.url == "https://myapi.local/root/?call=3"
     assert api_request3.headers.get("Authorization") == f"Bearer {access_token}"

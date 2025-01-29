@@ -2,12 +2,12 @@ from freezegun import freeze_time
 from furl import furl  # type: ignore[import-untyped]
 from jwskate import EncryptionAlgs, Jwk, Jwt
 
-from requests_oauth2client import IdToken, OAuth2Client
-from tests.conftest import RequestsMocker
+from niquests_oauth2client import IdToken, OAuth2Client
+from tests.conftest import NiquestsMocker
 
 
 @freeze_time("2024-01-01 00:00:00")
-def test_encrypted_id_token(requests_mock: RequestsMocker) -> None:
+def test_encrypted_id_token(niquests_mock: NiquestsMocker) -> None:
     id_token_decryption_key = Jwk(
         {
             "kty": "EC",
@@ -82,7 +82,7 @@ def test_encrypted_id_token(requests_mock: RequestsMocker) -> None:
 
     access_token = "my_access_token"
 
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         json={"access_token": access_token, "token_type": "Bearer", "expires_in": 3600, "id_token": str(id_token)},
     )

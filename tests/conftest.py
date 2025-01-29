@@ -1,18 +1,31 @@
 from __future__ import annotations
 
 import base64
+import sys
+from collections.abc import Iterable
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from typing import Any, Callable
 from urllib.parse import parse_qs
 
+
+import niquests
+import urllib3
+# the mock utility 'requests_mock' only works with 'requests'
+sys.modules["requests"] = niquests
+sys.modules["requests.adapters"] = niquests.adapters
+sys.modules["requests.exceptions"] = niquests.exceptions
+sys.modules["requests.packages.urllib3"] = urllib3
+
+
 import pytest
-import requests
 import requests_mock
+
 from furl import Query, furl  # type: ignore[import-untyped]
 from jwskate import Jwk, JwkSet, SignedJwt, SymmetricJwk
-from requests_mock import Mocker
+from niquests.structures import CaseInsensitiveDict
+from pytest import FixtureRequest as __FixtureRequest  # noqa: PT013
 
-from requests_oauth2client import (
+from niquests_oauth2client import (
     ApiClient,
     BaseClientAuthenticationMethod,
     BearerToken,
@@ -22,27 +35,89 @@ from requests_oauth2client import (
     PublicApp,
 )
 
+
+class NiquestsAdapter(requests_mock.Adapter):
+    def build_response(self, req, resp):
+        """Return a niquests.Response."""
+        response = niquests.Response()
+
+        # Fallback to None if there's no status_code, for whatever reason.
+        response.status_code = getattr(resp, "status", None)
+
+        # Make headers case-insensitive.
+        response.headers = niquests.structures.CaseInsensitiveDict(getattr(resp, "headers", {}))
+
+        # Set encoding.
+        response.encoding = niquests.utils.get_encoding_from_headers(response.headers)
+        response.raw = resp
+        response.reason = response.raw.reason
+
+        if isinstance(req.url, bytes):
+            response.url = req.url.decode("utf-8")
+        else:
+            response.url = req.url
+
+        # Add new cookies from the server.
+        niquests.cookies.extract_cookies_to_jar(response.cookies, req, resp)
+
+        # Give the Response some context.
+        response.request = req
+        response.connection = self
+
+        return response
+
+requests_mock.response._http_adapter = NiquestsAdapter()
+
+
+class FixtureRequest(__FixtureRequest):
+    param: str
+
+
+class NiquestsMocker(requests_mock.Mocker):
+    def reset_mock(self) -> None: ...
+
+
 RequestValidatorType = Callable[..., None]
 
-if TYPE_CHECKING:
-    from pytest import FixtureRequest as __FixtureRequest  # noqa: PT013
-    from requests_mock.request import _RequestObjectProxy
 
-    class FixtureRequest(__FixtureRequest):
-        param: str
+@pytest.fixture
+def niquests_mock() -> NiquestsMocker:
+    """This is required because pytest load plugins at boot, way before conftest.
 
-    class RequestsMocker(Mocker):
-        def reset_mock(self) -> None: ...
+    The only reliable way to make requests_mock use Niquests is to customize it after.
 
-else:
-    from pytest import FixtureRequest  # noqa: PT013
+    """
 
-    RequestsMocker = Mocker
+
+
+    class _WrappedMocker(requests_mock.Mocker):
+        """Ensure requests_mock work with the drop-in replacement Niquests!"""
+
+        def __init__(
+            self,
+            session: niquests.Session | None = None,
+            *,
+            case_sensitive: bool = True,
+            adapter: requests_mock.Adapter | None = None,
+            json_encoder: Callable[[Any], Any] | None = None,
+            real_http: bool = False,
+        ) -> None:
+            # we purposely skip invoking super() to avoid the strict typecheck on session.
+            self._mock_target = session or niquests.Session
+            self.case_sensitive = case_sensitive
+            self._adapter = adapter or NiquestsAdapter(case_sensitive=case_sensitive)
+
+            self._json_encoder = json_encoder
+            self.real_http = real_http
+            self._last_send = None
+
+    with _WrappedMocker(case_sensitive=True) as m:
+        yield m
 
 
 @pytest.fixture(scope="session")
-def session() -> requests.Session:
-    return requests.Session()
+def session() -> niquests.Session:
+    return niquests.Session()
 
 
 def join_url(root: str, path: str) -> str:
@@ -161,7 +236,7 @@ def client_auth_method(
 
 @pytest.fixture(scope="session")
 def client_secret_post_auth_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, *, client_id: str, client_secret: str) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, *, client_id: str, client_secret: str) -> None:
         params = parse_qs(req.text)
         assert params.get("client_id") == [client_id]
         assert params.get("client_secret") == [client_secret]
@@ -172,7 +247,7 @@ def client_secret_post_auth_validator() -> RequestValidatorType:
 
 @pytest.fixture(scope="session")
 def public_app_auth_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, *, client_id: str) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, *, client_id: str) -> None:
         params = parse_qs(req.text)
         assert params.get("client_id") == [client_id]
         assert "client_secret" not in params
@@ -182,7 +257,7 @@ def public_app_auth_validator() -> RequestValidatorType:
 
 @pytest.fixture(scope="session")
 def client_secret_basic_auth_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, *, client_id: str, client_secret: str) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, *, client_id: str, client_secret: str) -> None:
         encoded_username_password = base64.b64encode(f"{client_id}:{client_secret}".encode("ascii")).decode()
         assert req.headers.get("Authorization") == f"Basic {encoded_username_password}"
         assert "client_secret" not in req.text
@@ -192,7 +267,9 @@ def client_secret_basic_auth_validator() -> RequestValidatorType:
 
 @pytest.fixture(scope="session")
 def client_secret_jwt_auth_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, *, client_id: str, client_secret: str, endpoint: str) -> None:
+    def validator(
+        req: requests_mock.request._RequestObjectProxy, *, client_id: str, client_secret: str, endpoint: str
+    ) -> None:
         params = Query(req.text).params
         assert params.get("client_id") == client_id
         assert "client_assertion" in params
@@ -215,7 +292,7 @@ def client_secret_jwt_auth_validator() -> RequestValidatorType:
 @pytest.fixture(scope="session")
 def private_key_jwt_auth_validator() -> RequestValidatorType:
     def validator(
-        req: requests_mock.request._RequestObjectProxy,
+        req: niquests_mock.request._RequestObjectProxy,
         *,
         client_id: str,
         public_jwk: Jwk,
@@ -241,15 +318,15 @@ def private_key_jwt_auth_validator() -> RequestValidatorType:
 
 @pytest.fixture(scope="session")
 def client_credentials_grant_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, *, scope: str | None = None, **kwargs: Any) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, *, scope: str | None = None, **kwargs: Any) -> None:
         params = Query(req.text).params
         assert params.get("grant_type") == "client_credentials"
         if scope is not None and not isinstance(scope, str):
             scope = " ".join(scope)
 
-        assert (
-            not scope and params.get("scope") is None or scope and params.get("scope") == scope
-        ), f"expected {scope=}, got {params.get('scope')=}"
+        assert (not scope and params.get("scope") is None) or (scope and params.get("scope") == scope), (
+            f"expected {scope=}, got {params.get('scope')=}"
+        )
         for key, val in kwargs.items():
             assert params.get(key) == val
 
@@ -260,7 +337,7 @@ def client_credentials_grant_validator() -> RequestValidatorType:
 
 @pytest.fixture(scope="session")
 def authorization_code_grant_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, *, code: str, **kwargs: Any) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, *, code: str, **kwargs: Any) -> None:
         params = Query(req.text).params
         assert params.get("grant_type") == "authorization_code"
         for key, val in kwargs.items():
@@ -273,7 +350,7 @@ def authorization_code_grant_validator() -> RequestValidatorType:
 
 @pytest.fixture(scope="session")
 def refresh_token_grant_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, *, refresh_token: str, **kwargs: Any) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, *, refresh_token: str, **kwargs: Any) -> None:
         params = Query(req.text).params
         assert params.get("grant_type") == "refresh_token"
         assert params.get("refresh_token") == refresh_token
@@ -287,7 +364,7 @@ def refresh_token_grant_validator() -> RequestValidatorType:
 
 @pytest.fixture(scope="session")
 def device_code_grant_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, device_code: str, **kwargs: Any) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, device_code: str, **kwargs: Any) -> None:
         params = Query(req.text).params
         assert params.get("grant_type") == "urn:ietf:params:oauth:grant-type:device_code"
         assert params.get("device_code") == device_code
@@ -301,7 +378,7 @@ def device_code_grant_validator() -> RequestValidatorType:
 
 @pytest.fixture(scope="session")
 def token_exchange_grant_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, subject_token: str, **kwargs: Any) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, subject_token: str, **kwargs: Any) -> None:
         params = Query(req.text).params
         assert params.get("grant_type") == "urn:ietf:params:oauth:grant-type:token-exchange"
         assert params.get("subject_token") == subject_token
@@ -315,7 +392,7 @@ def token_exchange_grant_validator() -> RequestValidatorType:
 
 @pytest.fixture(scope="session")
 def ciba_request_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, *, auth_req_id: str, **kwargs: Any) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, *, auth_req_id: str, **kwargs: Any) -> None:
         params = Query(req.text).params
         assert params.get("grant_type") == "urn:openid:params:grant-type:ciba"
         assert params.get("auth_req_id") == auth_req_id
@@ -330,7 +407,7 @@ def ciba_request_validator() -> RequestValidatorType:
 @pytest.fixture(scope="session")
 def backchannel_auth_request_validator() -> RequestValidatorType:
     def validator(
-        req: _RequestObjectProxy,
+        req: requests_mock.request._RequestObjectProxy,
         *,
         scope: None | str | Iterable[str],
         acr_values: None | str | Iterable[str] = None,
@@ -372,7 +449,7 @@ def backchannel_auth_request_validator() -> RequestValidatorType:
 @pytest.fixture(scope="session")
 def backchannel_auth_request_jwt_validator() -> RequestValidatorType:
     def validator(
-        req: _RequestObjectProxy,
+        req: requests_mock.request._RequestObjectProxy,
         *,
         public_jwk: Jwk,
         alg: str,
@@ -410,7 +487,7 @@ def backchannel_auth_request_jwt_validator() -> RequestValidatorType:
 @pytest.fixture(scope="session")
 def revocation_request_validator() -> RequestValidatorType:
     def validator(
-        req: _RequestObjectProxy,
+        req: requests_mock.request._RequestObjectProxy,
         token: str,
         type_hint: str | None = None,
         **kwargs: Any,
@@ -428,7 +505,7 @@ def revocation_request_validator() -> RequestValidatorType:
 @pytest.fixture(scope="session")
 def introspection_request_validator() -> RequestValidatorType:
     def validator(
-        req: _RequestObjectProxy,
+        req: requests_mock.request._RequestObjectProxy,
         token: str,
         type_hint: str | None = None,
         **kwargs: Any,
@@ -552,7 +629,7 @@ def server_public_jwks(server_private_jwks: JwkSet) -> JwkSet:
 
 @pytest.fixture(scope="session")
 def bearer_auth_validator() -> RequestValidatorType:
-    def validator(req: _RequestObjectProxy, *, access_token: str) -> None:
+    def validator(req: requests_mock.request._RequestObjectProxy, *, access_token: str) -> None:
         assert req.headers.get("Authorization") == f"Bearer {access_token}"
 
     return validator

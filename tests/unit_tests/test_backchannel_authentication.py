@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import pytest
 from freezegun import freeze_time
 
-from requests_oauth2client import (
+from niquests_oauth2client import (
     BackChannelAuthenticationPoolingJob,
     BackChannelAuthenticationResponse,
     BaseClientAuthenticationMethod,
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from jwskate import Jwk
     from pytest_mock import MockerFixture
 
-    from tests.conftest import RequestsMocker, RequestValidatorType
+    from tests.conftest import NiquestsMocker, RequestValidatorType
 
 
 @freeze_time()
@@ -72,7 +72,7 @@ def bca_client(
 
 @freeze_time()
 def test_backchannel_authentication(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     backchannel_authentication_endpoint: str,
     bca_client: OAuth2Client,
     auth_req_id: str,
@@ -82,33 +82,33 @@ def test_backchannel_authentication(
     token_endpoint: str,
     access_token: str,
 ) -> None:
-    requests_mock.post(
+    niquests_mock.post(
         backchannel_authentication_endpoint,
         json={"auth_req_id": auth_req_id, "expires_in": 360, "interval": 3},
     )
     bca_resp = bca_client.backchannel_authentication_request(scope=scope, login_hint="user@example.com")
 
-    assert requests_mock.called_once
-    backchannel_auth_request_validator(requests_mock.last_request, scope=scope, login_hint="user@example.com")
+    assert niquests_mock.called_once
+    backchannel_auth_request_validator(niquests_mock.last_request, scope=scope, login_hint="user@example.com")
 
     assert isinstance(bca_resp, BackChannelAuthenticationResponse)
     assert bca_resp.expires_in == 360
 
-    requests_mock.post(token_endpoint, json={"access_token": access_token, "token_type": "Bearer"})
+    niquests_mock.post(token_endpoint, json={"access_token": access_token, "token_type": "Bearer"})
 
     token_resp = bca_client.ciba(bca_resp)
     assert isinstance(token_resp, BearerToken)
-    ciba_request_validator(requests_mock.last_request, auth_req_id=auth_req_id)
+    ciba_request_validator(niquests_mock.last_request, auth_req_id=auth_req_id)
 
-    requests_mock.reset()
+    niquests_mock.reset()
     bca_client.ciba(BackChannelAuthenticationResponse(auth_req_id=auth_req_id))
-    assert requests_mock.called_once
-    ciba_request_validator(requests_mock.last_request, auth_req_id=auth_req_id)
+    assert niquests_mock.called_once
+    ciba_request_validator(niquests_mock.last_request, auth_req_id=auth_req_id)
 
 
 @freeze_time()
 def test_backchannel_authentication_scope_acr_values_as_list(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     backchannel_authentication_endpoint: str,
     bca_client: OAuth2Client,
     auth_req_id: str,
@@ -117,7 +117,7 @@ def test_backchannel_authentication_scope_acr_values_as_list(
     scope = ("openid", "email", "profile")
     acr_values = ("reinforced", "strong")
 
-    requests_mock.post(
+    niquests_mock.post(
         backchannel_authentication_endpoint,
         json={"auth_req_id": auth_req_id, "expires_in": 360, "interval": 3},
     )
@@ -125,9 +125,9 @@ def test_backchannel_authentication_scope_acr_values_as_list(
         scope=scope, acr_values=acr_values, login_hint="user@example.com"
     )
 
-    assert requests_mock.called_once
+    assert niquests_mock.called_once
     backchannel_auth_request_validator(
-        requests_mock.last_request, scope=scope, acr_values=acr_values, login_hint="user@example.com"
+        niquests_mock.last_request, scope=scope, acr_values=acr_values, login_hint="user@example.com"
     )
 
     assert isinstance(bca_resp, BackChannelAuthenticationResponse)
@@ -139,25 +139,25 @@ def test_backchannel_authentication_scope_acr_values_as_list(
 
 
 def test_backchannel_authentication_invalid_response(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     backchannel_authentication_endpoint: str,
     bca_client: OAuth2Client,
     scope: None | str | list[str],
     backchannel_auth_request_validator: RequestValidatorType,
 ) -> None:
-    requests_mock.post(
+    niquests_mock.post(
         backchannel_authentication_endpoint,
         json={"foo": "bar"},
     )
     with pytest.raises(InvalidBackChannelAuthenticationResponse):
         bca_client.backchannel_authentication_request(scope=scope, login_hint="user@example.com")
 
-    assert requests_mock.called_once
-    backchannel_auth_request_validator(requests_mock.last_request, scope=scope, login_hint="user@example.com")
+    assert niquests_mock.called_once
+    backchannel_auth_request_validator(niquests_mock.last_request, scope=scope, login_hint="user@example.com")
 
 
 def test_backchannel_authentication_jwt(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     backchannel_authentication_endpoint: str,
     bca_client: OAuth2Client,
     private_jwk: Jwk,
@@ -166,7 +166,7 @@ def test_backchannel_authentication_jwt(
     scope: None | str | list[str],
     backchannel_auth_request_jwt_validator: RequestValidatorType,
 ) -> None:
-    requests_mock.post(
+    niquests_mock.post(
         backchannel_authentication_endpoint,
         json={"auth_req_id": auth_req_id, "expires_in": 360, "interval": 3},
     )
@@ -174,9 +174,9 @@ def test_backchannel_authentication_jwt(
         private_jwk=private_jwk, scope=scope, login_hint="user@example.com", alg="RS256"
     )
 
-    assert requests_mock.called_once
+    assert niquests_mock.called_once
     backchannel_auth_request_jwt_validator(
-        requests_mock.last_request,
+        niquests_mock.last_request,
         public_jwk=public_jwk,
         alg="RS256",
         scope=scope,
@@ -187,13 +187,13 @@ def test_backchannel_authentication_jwt(
 
 
 def test_backchannel_authentication_error(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     backchannel_authentication_endpoint: str,
     bca_client: OAuth2Client,
     scope: None | str | list[str],
     backchannel_auth_request_validator: RequestValidatorType,
 ) -> None:
-    requests_mock.post(
+    niquests_mock.post(
         backchannel_authentication_endpoint,
         status_code=400,
         json={"error": "unauthorized_client"},
@@ -201,18 +201,18 @@ def test_backchannel_authentication_error(
     with pytest.raises(UnauthorizedClient):
         bca_client.backchannel_authentication_request(scope=scope, login_hint="user@example.com")
 
-    assert requests_mock.called_once
-    backchannel_auth_request_validator(requests_mock.last_request, scope=scope, login_hint="user@example.com")
+    assert niquests_mock.called_once
+    backchannel_auth_request_validator(niquests_mock.last_request, scope=scope, login_hint="user@example.com")
 
 
 def test_backchannel_authentication_invalid_error(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     backchannel_authentication_endpoint: str,
     bca_client: OAuth2Client,
     scope: None | str | list[str],
     backchannel_auth_request_validator: RequestValidatorType,
 ) -> None:
-    requests_mock.post(
+    niquests_mock.post(
         backchannel_authentication_endpoint,
         status_code=400,
         json={"foo": "bar"},
@@ -220,18 +220,18 @@ def test_backchannel_authentication_invalid_error(
     with pytest.raises(InvalidBackChannelAuthenticationResponse):
         bca_client.backchannel_authentication_request(scope=scope, login_hint="user@example.com")
 
-    assert requests_mock.called_once
-    backchannel_auth_request_validator(requests_mock.last_request, scope=scope, login_hint="user@example.com")
+    assert niquests_mock.called_once
+    backchannel_auth_request_validator(niquests_mock.last_request, scope=scope, login_hint="user@example.com")
 
 
 def test_backchannel_authentication_not_json_error(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     backchannel_authentication_endpoint: str,
     bca_client: OAuth2Client,
     scope: None | str | list[str],
     backchannel_auth_request_validator: RequestValidatorType,
 ) -> None:
-    requests_mock.post(
+    niquests_mock.post(
         backchannel_authentication_endpoint,
         status_code=400,
         text="Error!",
@@ -239,8 +239,8 @@ def test_backchannel_authentication_not_json_error(
     with pytest.raises(InvalidBackChannelAuthenticationResponse):
         bca_client.backchannel_authentication_request(scope=scope, login_hint="user@example.com")
 
-    assert requests_mock.called_once
-    backchannel_auth_request_validator(requests_mock.last_request, scope=scope, login_hint="user@example.com")
+    assert niquests_mock.called_once
+    backchannel_auth_request_validator(niquests_mock.last_request, scope=scope, login_hint="user@example.com")
 
 
 def test_backchannel_authentication_missing_hint(
@@ -265,7 +265,7 @@ def test_backchannel_authentication_invalid_scope(bca_client: OAuth2Client) -> N
 
 
 def test_pooling_job(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     bca_client: OAuth2Client,
     token_endpoint: str,
     auth_req_id: str,
@@ -284,38 +284,38 @@ def test_pooling_job(
         BackChannelAuthenticationResponse(auth_req_id, interval=interval),
     )
 
-    requests_mock.post(token_endpoint, status_code=401, json={"error": "authorization_pending"})
+    niquests_mock.post(token_endpoint, status_code=401, json={"error": "authorization_pending"})
     mocker.patch("time.sleep")
 
     assert job() is None
     time.sleep.assert_called_once_with(job.interval)  # type: ignore[attr-defined]
     time.sleep.reset_mock()  # type: ignore[attr-defined]
-    assert requests_mock.called_once
+    assert niquests_mock.called_once
     assert job.interval == interval
 
-    ciba_request_validator(requests_mock.last_request, auth_req_id=auth_req_id)
+    ciba_request_validator(niquests_mock.last_request, auth_req_id=auth_req_id)
 
     freezer.tick(job.interval)
-    requests_mock.reset_mock()
-    requests_mock.post(token_endpoint, status_code=401, json={"error": "slow_down"})
+    niquests_mock.reset_mock()
+    niquests_mock.post(token_endpoint, status_code=401, json={"error": "slow_down"})
 
     assert job() is None
     time.sleep.assert_called_once_with(interval)  # type: ignore[attr-defined]
     time.sleep.reset_mock()  # type: ignore[attr-defined]
-    assert requests_mock.called_once
+    assert niquests_mock.called_once
     assert job.interval == interval + job.slow_down_interval
-    ciba_request_validator(requests_mock.last_request, auth_req_id=auth_req_id)
+    ciba_request_validator(niquests_mock.last_request, auth_req_id=auth_req_id)
 
     freezer.tick(job.interval)
-    requests_mock.reset_mock()
-    requests_mock.post(token_endpoint, json={"access_token": access_token})
+    niquests_mock.reset_mock()
+    niquests_mock.post(token_endpoint, json={"access_token": access_token})
 
     token = job()
     time.sleep.assert_called_once_with(interval + job.slow_down_interval)  # type: ignore[attr-defined]
     time.sleep.reset_mock()  # type: ignore[attr-defined]
-    assert requests_mock.called_once
+    assert niquests_mock.called_once
     assert job.interval == interval + job.slow_down_interval
-    ciba_request_validator(requests_mock.last_request, auth_req_id=auth_req_id)
+    ciba_request_validator(niquests_mock.last_request, auth_req_id=auth_req_id)
     assert isinstance(token, BearerToken)
     assert token.access_token == access_token
 

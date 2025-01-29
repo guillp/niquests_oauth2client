@@ -13,7 +13,7 @@ from typing import Any, Callable
 from urllib.parse import parse_qs
 from uuid import uuid4
 
-import requests
+import niquests
 from attrs import frozen
 from binapy import BinaPy
 from jwskate import Jwk, Jwt, SignatureAlgs, SymmetricJwk, to_jwk
@@ -22,14 +22,14 @@ from jwskate import Jwk, Jwt, SignatureAlgs, SymmetricJwk, to_jwk
 class InvalidRequestForClientAuthentication(RuntimeError):
     """Raised when a request is not suitable for OAuth 2.0 client authentication."""
 
-    def __init__(self, request: requests.PreparedRequest) -> None:
+    def __init__(self, request: niquests.PreparedRequest) -> None:
         super().__init__("This request is not suitabe for OAuth 2.0 client authentication.")
         self.request = request
 
 
 @frozen
-class BaseClientAuthenticationMethod(requests.auth.AuthBase):
-    """Base class for all Client Authentication methods. This extends [requests.auth.AuthBase][].
+class BaseClientAuthenticationMethod(niquests.auth.AuthBase):
+    """Base class for all Client Authentication methods. This extends [niquests.auth.AuthBase][].
 
     This base class checks that requests are suitable to add Client Authentication parameters to, and does not modify
     the request.
@@ -38,7 +38,7 @@ class BaseClientAuthenticationMethod(requests.auth.AuthBase):
 
     client_id: str
 
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(self, request: niquests.PreparedRequest) -> niquests.PreparedRequest:
         """Check that the request is suitable for Client Authentication.
 
         It checks:
@@ -47,10 +47,10 @@ class BaseClientAuthenticationMethod(requests.auth.AuthBase):
         * that the Content-Type is "application/x-www-form-urlencoded" or None
 
         Args:
-            request: a [requests.PreparedRequest][]
+            request: a [niquests.PreparedRequest][]
 
         Returns:
-            a [requests.PreparedRequest][], unmodified
+            a [niquests.PreparedRequest][], unmodified
 
         Raises:
             RuntimeError: if the request is not suitable for OAuth 2.0 Client Authentication
@@ -77,7 +77,7 @@ class ClientSecretBasic(BaseClientAuthenticationMethod):
 
     Example:
         ```python
-        from requests_oauth2client import ClientSecretBasic, OAuth2Client
+        from niquests_oauth2client import ClientSecretBasic, OAuth2Client
 
         auth = ClientSecretBasic("my_client_id", "my_client_secret")
         client = OAuth2Client("https://url.to.the/token_endpoint", auth=auth)
@@ -93,7 +93,7 @@ class ClientSecretBasic(BaseClientAuthenticationMethod):
             client_secret=client_secret,
         )
 
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(self, request: niquests.PreparedRequest) -> niquests.PreparedRequest:
         """Add the appropriate `Authorization` header in each request.
 
         The Authorization header is formatted as such:
@@ -103,7 +103,7 @@ class ClientSecretBasic(BaseClientAuthenticationMethod):
             request: the request
 
         Returns:
-            a [requests.PreparedRequest][] with the added Authorization header.
+            a [niquests.PreparedRequest][] with the added Authorization header.
 
         """
         request = super().__call__(request)
@@ -125,7 +125,7 @@ class ClientSecretPost(BaseClientAuthenticationMethod):
 
     Example:
         ```python
-        from requests_oauth2client import ClientSecretPost, OAuth2Client
+        from niquests_oauth2client import ClientSecretPost, OAuth2Client
 
         auth = ClientSecretPost("my_client_id", "my_client_secret")
         client = OAuth2Client("https://url.to.the/token_endpoint", auth=auth)
@@ -141,14 +141,14 @@ class ClientSecretPost(BaseClientAuthenticationMethod):
             client_secret=client_secret,
         )
 
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(self, request: niquests.PreparedRequest) -> niquests.PreparedRequest:
         """Add the `client_id` and `client_secret` parameters in the request body.
 
         Args:
-            request: a [requests.PreparedRequest][].
+            request: a [niquests.PreparedRequest][].
 
         Returns:
-            a [requests.PreparedRequest][] with the added client credentials fields.
+            a [niquests.PreparedRequest][] with the added client credentials fields.
 
         """
         request = super().__call__(request)
@@ -184,14 +184,14 @@ class BaseClientAssertionAuthenticationMethod(BaseClientAuthenticationMethod):
         """
         raise NotImplementedError
 
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(self, request: niquests.PreparedRequest) -> niquests.PreparedRequest:
         """Add a `client_assertion` field in the request body.
 
         Args:
-            request: a [requests.PreparedRequest][].
+            request: a [niquests.PreparedRequest][].
 
         Returns:
-            a [requests.PreparedRequest][] with the added `client_assertion` field.
+            a [niquests.PreparedRequest][] with the added `client_assertion` field.
 
         """
         request = super().__call__(request)
@@ -228,7 +228,7 @@ class ClientSecretJwt(BaseClientAssertionAuthenticationMethod):
 
     Example:
         ```python
-        from requests_oauth2client import OAuth2Client, ClientSecretJwt
+        from niquests_oauth2client import OAuth2Client, ClientSecretJwt
 
         auth = ClientSecretJwt("my_client_id", "my_client_secret")
         client = OAuth2Client("https://url.to.the/token_endpoint", auth=auth)
@@ -327,7 +327,7 @@ class PrivateKeyJwt(BaseClientAssertionAuthenticationMethod):
     Example:
         ```python
         from jwskate import Jwk
-        from requests_oauth2client import OAuth2Client, PrivateKeyJwt
+        from niquests_oauth2client import OAuth2Client, PrivateKeyJwt
 
         # load your private key from wherever it is stored:
         with open("my_private_key.pem") as f:
@@ -414,7 +414,7 @@ class PublicApp(BaseClientAuthenticationMethod):
 
     Example:
         ```python
-        from requests_oauth2client import OAuth2Client, PublicApp
+        from niquests_oauth2client import OAuth2Client, PublicApp
 
         auth = PublicApp("my_client_id")
         client = OAuth2Client("https://url.to.the/token_endpoint", auth=auth)
@@ -422,7 +422,7 @@ class PublicApp(BaseClientAuthenticationMethod):
 
     """
 
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(self, request: niquests.PreparedRequest) -> niquests.PreparedRequest:
         """Add the `client_id` field in the request body.
 
         Args:
@@ -448,13 +448,13 @@ class UnsupportedClientCredentials(TypeError, ValueError):
 
 
 def client_auth_factory(
-    auth: requests.auth.AuthBase | tuple[str, str] | tuple[str, Jwk] | tuple[str, dict[str, Any]] | str | None,
+    auth: niquests.auth.AuthBase | tuple[str, str] | tuple[str, Jwk] | tuple[str, dict[str, Any]] | str | None,
     *,
     client_id: str | None = None,
     client_secret: str | None = None,
     private_key: Jwk | dict[str, Any] | None = None,
     default_auth_handler: type[ClientSecretPost | ClientSecretBasic | ClientSecretJwt] = ClientSecretPost,
-) -> requests.auth.AuthBase:
+) -> niquests.auth.AuthBase:
     """Initialize the appropriate Auth Handler based on the provided parameters.
 
     This initializes a `ClientAuthenticationMethod` subclass based on the provided parameters.
@@ -462,7 +462,7 @@ def client_auth_factory(
     Args:
         auth: can be:
 
-            - a `requests.auth.AuthBase` instance (which will be used directly)
+            - a `niquests.auth.AuthBase` instance (which will be used directly)
             - a tuple of (client_id, client_secret) which will be used to initialize an instance of
               `default_auth_handler`,
             - a tuple of (client_id, jwk), used to initialize a `PrivateKeyJwk` (`jwk` being an
@@ -496,7 +496,7 @@ or use `client_id` and one of `client_secret` or `private_key`.
 
     if isinstance(auth, str):
         client_id = auth
-    elif isinstance(auth, requests.auth.AuthBase):
+    elif isinstance(auth, niquests.auth.AuthBase):
         return auth
     elif isinstance(auth, tuple) and len(auth) == 2:  # noqa: PLR2004
         client_id, credential = auth

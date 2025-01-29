@@ -4,7 +4,7 @@ import pytest
 from furl import Query  # type: ignore[import-untyped]
 from requests_mock import Mocker
 
-from requests_oauth2client import (
+from niquests_oauth2client import (
     BearerToken,
     ClientSecretBasic,
     DeviceAuthorizationError,
@@ -23,7 +23,7 @@ def device_authorization_endpoint(request: FixtureRequest, issuer: str) -> str:
 
 @pytest.mark.slow
 def test_device_authorization(
-    requests_mock: Mocker,
+    niquests_mock: Mocker,
     device_authorization_endpoint: str,
     token_endpoint: str,
     client_id: str,
@@ -39,7 +39,7 @@ def test_device_authorization(
         auth=(client_id, client_secret),
     )
 
-    requests_mock.post(
+    niquests_mock.post(
         device_authorization_endpoint,
         json={
             "device_code": device_code,
@@ -55,14 +55,14 @@ def test_device_authorization(
     assert device_auth_resp.verification_uri
     assert not device_auth_resp.is_expired()
 
-    assert requests_mock.last_request is not None
-    params = Query(requests_mock.last_request.text).params
+    assert niquests_mock.last_request is not None
+    params = Query(niquests_mock.last_request.text).params
     assert params.get("client_id") == client_id
     assert params.get("client_secret") == client_secret
 
     access_token = secrets.token_urlsafe()
 
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         [
             {"json": {"error": "authorization_pending"}, "status_code": 400},
@@ -86,8 +86,8 @@ def test_device_authorization(
 
     # 1st attempt: authorization_pending
     resp = pool_job()
-    assert requests_mock.last_request is not None
-    params = Query(requests_mock.last_request.text).params
+    assert niquests_mock.last_request is not None
+    params = Query(niquests_mock.last_request.text).params
     assert params.get("client_id") == client_id
     assert params.get("client_secret") == client_secret
 
@@ -96,8 +96,8 @@ def test_device_authorization(
 
     # 2nd attempt: slow down
     resp = pool_job()
-    assert requests_mock.last_request is not None
-    params = Query(requests_mock.last_request.text).params
+    assert niquests_mock.last_request is not None
+    params = Query(niquests_mock.last_request.text).params
     assert params.get("client_id") == client_id
     assert params.get("client_secret") == client_secret
 
@@ -107,8 +107,8 @@ def test_device_authorization(
     # 3rd attempt: access token delivered
     resp = pool_job()
     assert isinstance(resp, BearerToken)
-    assert requests_mock.last_request is not None
-    params = Query(requests_mock.last_request.text).params
+    assert niquests_mock.last_request is not None
+    params = Query(niquests_mock.last_request.text).params
     assert params.get("client_id") == client_id
     assert params.get("client_secret") == client_secret
 
@@ -141,7 +141,7 @@ def test_auth_handler(
 
 
 def test_invalid_response(
-    requests_mock: Mocker,
+    niquests_mock: Mocker,
     token_endpoint: str,
     device_authorization_endpoint: str,
     client_id: str,
@@ -153,7 +153,7 @@ def test_invalid_response(
         auth=(client_id, client_secret),
     )
 
-    requests_mock.post(
+    niquests_mock.post(
         device_authorization_endpoint,
         status_code=500,
         json={"error": "unknown_error"},
@@ -161,7 +161,7 @@ def test_invalid_response(
     with pytest.raises(DeviceAuthorizationError):
         da_client.authorize_device()
 
-    requests_mock.post(
+    niquests_mock.post(
         device_authorization_endpoint,
         status_code=500,
         json={"foo": "bar"},

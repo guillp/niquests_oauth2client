@@ -1,4 +1,4 @@
-from requests_oauth2client import (
+from niquests_oauth2client import (
     oauth2_discovery_document_url,
     oidc_discovery_document_url,
     well_known_uri,

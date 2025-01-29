@@ -3,13 +3,13 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 
-import requests
+import niquests
 from freezegun import freeze_time
 from furl import Query, furl  # type: ignore[import-untyped]
 from jwskate import Jwk
 from requests_mock import Mocker
 
-from requests_oauth2client import (
+from niquests_oauth2client import (
     AuthorizationRequest,
     BearerToken,
     ClientSecretPost,
@@ -21,8 +21,8 @@ from requests_oauth2client import (
 
 @freeze_time()
 def test_authorization_code(
-    session: requests.Session,
-    requests_mock: Mocker,
+    session: niquests.Session,
+    niquests_mock: Mocker,
     issuer: str,
     token_endpoint: str,
     authorization_endpoint: str,
@@ -37,8 +37,8 @@ def test_authorization_code(
     id_token_sig_alg = "ES256"
     id_token_signing_key = Jwk.generate(alg=id_token_sig_alg).with_kid_thumbprint()
 
-    requests_mock.get(issuer + "/.well-known/openid-configuration", json=discovery_document)
-    requests_mock.get(jwks_uri, json={"keys": [id_token_signing_key.public_jwk().to_dict()]})
+    niquests_mock.get(issuer + "/.well-known/openid-configuration", json=discovery_document)
+    niquests_mock.get(jwks_uri, json={"keys": [id_token_signing_key.public_jwk().to_dict()]})
     client = OAuth2Client.from_discovery_endpoint(
         issuer=issuer,
         client_id=client_id,
@@ -94,7 +94,7 @@ def test_authorization_code(
 
     auth_response = authorization_request.validate_callback(authorization_response)
 
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         json={"access_token": access_token, "token_type": "Bearer", "expires_in": 3600, "id_token": str(id_token)},
     )
@@ -106,8 +106,8 @@ def test_authorization_code(
     assert token.expires_at is not None
     assert token.expires_at == datetime.now(tz=timezone.utc).replace(microsecond=0) + timedelta(seconds=3600)
 
-    assert requests_mock.last_request is not None
-    params = Query(requests_mock.last_request.text).params
+    assert niquests_mock.last_request is not None
+    params = Query(niquests_mock.last_request.text).params
     assert params.get("client_id") == client_id
     assert params.get("client_secret") == client_secret
     assert params.get("grant_type") == "authorization_code"
@@ -116,8 +116,8 @@ def test_authorization_code(
 
 @freeze_time()
 def test_authorization_code_legacy(
-    session: requests.Session,
-    requests_mock: Mocker,
+    session: niquests.Session,
+    niquests_mock: Mocker,
     issuer: str,
     discovery_document: str,
     client_id: str,
@@ -127,7 +127,7 @@ def test_authorization_code_legacy(
     audience: str,
 ) -> None:
     discovery_url = oidc_discovery_document_url(issuer)
-    requests_mock.get(discovery_url, json=discovery_document)
+    niquests_mock.get(discovery_url, json=discovery_document)
     discovery = session.get(discovery_url).json()
     authorization_endpoint = discovery.get("authorization_endpoint")
     assert authorization_endpoint
@@ -147,24 +147,24 @@ def test_authorization_code_legacy(
     state = authorization_request.state
 
     authorization_response = furl(redirect_uri, query={"code": authorization_code, "state": state}).url
-    requests_mock.get(
+    niquests_mock.get(
         authorization_request.uri,
         status_code=302,
         headers={"Location": authorization_response},
     )
-    resp = requests.get(authorization_request.uri, allow_redirects=False)
+    resp = niquests.get(authorization_request.uri, allow_redirects=False)
     assert resp.status_code == 302
     location = resp.headers.get("Location")
     assert location == authorization_response
-    assert requests_mock.last_request is not None
-    qs = Query(requests_mock.last_request.qs).params
+    assert niquests_mock.last_request is not None
+    qs = Query(niquests_mock.last_request.qs).params
     assert qs.get("client_id") == client_id
     assert qs.get("response_type") == "code"
     assert qs.get("redirect_uri") == redirect_uri
     assert qs.get("state") == state
     code_challenge = qs.get("code_challenge")
     assert code_challenge
-    code_challenge_method = requests_mock.last_request.qs.get("code_challenge_method")
+    code_challenge_method = niquests_mock.last_request.qs.get("code_challenge_method")
     code_verifier = authorization_request.code_verifier
     assert code_verifier is not None
     assert code_challenge_method == ["S256"]
@@ -179,7 +179,7 @@ def test_authorization_code_legacy(
 
     access_token = secrets.token_urlsafe()
 
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         json={"access_token": access_token, "token_type": "Bearer", "expires_in": 3600},
     )
@@ -191,8 +191,8 @@ def test_authorization_code_legacy(
     assert token.expires_at is not None
     assert token.expires_at == datetime.now(tz=timezone.utc).replace(microsecond=0) + timedelta(seconds=3600)
 
-    assert requests_mock.last_request is not None
-    params = Query(requests_mock.last_request.text).params
+    assert niquests_mock.last_request is not None
+    params = Query(niquests_mock.last_request.text).params
     assert params.get("client_id") == client_id
     assert params.get("client_secret") == client_secret
     assert params.get("grant_type") == "authorization_code"

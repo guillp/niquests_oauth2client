@@ -4,7 +4,7 @@ import string
 
 import pytest
 
-from requests_oauth2client import PkceUtils
+from niquests_oauth2client import PkceUtils
 
 
 def test_generate_code_verifier_and_challenge() -> None:

@@ -5,7 +5,7 @@ import pytest
 from freezegun import freeze_time
 from jwskate import EncryptionAlgs, InvalidSignature, Jwk, Jwt, KeyManagementAlgs, SignatureAlgs
 
-from requests_oauth2client import (
+from niquests_oauth2client import (
     AuthorizationResponse,
     BearerToken,
     ExpiredIdToken,
@@ -20,7 +20,7 @@ from requests_oauth2client import (
     MissingIdToken,
     OAuth2Client,
 )
-from requests_oauth2client.tokens import UnsupportedIdTokenAlg
+from niquests_oauth2client.tokens import UnsupportedIdTokenAlg
 
 
 @freeze_time("2011-07-21 20:42:55")

@@ -1,10 +1,10 @@
-"""Main module for `requests_oauth2client`.
+"""Main module for `niquests_oauth2client`.
 
 You can import any class from any submodule directly from this main module.
 
 """
 
-import requests
+import niquests
 from jwskate import EncryptionAlgs, KeyManagementAlgs, SignatureAlgs
 
 from .api_client import ApiClient, InvalidBoolFieldsParam, InvalidPathParam
@@ -163,11 +163,11 @@ __all__ = [
     "BackChannelAuthenticationError",
     "BackChannelAuthenticationPoolingJob",
     "BackChannelAuthenticationResponse",
+    "BaseClientAssertionAuthenticationMethod",
     "BaseClientAuthenticationMethod",
     "BaseTokenEndpointPoolingJob",
     "BearerToken",
     "BearerTokenSerializer",
-    "BaseClientAssertionAuthenticationMethod",
     "ClientSecretBasic",
     "ClientSecretJwt",
     "ClientSecretPost",
@@ -196,12 +196,12 @@ __all__ = [
     "InvalidClient",
     "InvalidClientAssertionSigningKeyOrAlg",
     "InvalidCodeVerifierParam",
-    "InvalidDeviceAuthorizationResponse",
-    "InvalidDiscoveryDocument",
     "InvalidDPoPAccessToken",
     "InvalidDPoPAlg",
     "InvalidDPoPKey",
     "InvalidDPoPProof",
+    "InvalidDeviceAuthorizationResponse",
+    "InvalidDiscoveryDocument",
     "InvalidEndpointUri",
     "InvalidGrant",
     "InvalidIdToken",
@@ -221,18 +221,18 @@ __all__ = [
     "KeyManagementAlgs",
     "LoginRequired",
     "MismatchingIdTokenAcr",
-    "MissingAuthRequestId",
-    "MissingEndpointUri",
+    "MismatchingIdTokenAlg",
     "MismatchingIdTokenAudience",
     "MismatchingIdTokenAzp",
-    "MismatchingIdTokenAlg",
     "MismatchingIdTokenIssuer",
     "MismatchingIdTokenNonce",
     "MismatchingIssuer",
     "MismatchingState",
     "MissingAuthCode",
-    "MissingDeviceCode",
+    "MissingAuthRequestId",
     "MissingDPoPNonce",
+    "MissingDeviceCode",
+    "MissingEndpointUri",
     "MissingIdToken",
     "MissingIdTokenEncryptedResponseAlgParam",
     "MissingIssuer",
@@ -260,17 +260,17 @@ __all__ = [
     "SlowDown",
     "TokenEndpointError",
     "UnauthorizedClient",
+    "UnknownActorTokenType",
     "UnknownIntrospectionError",
+    "UnknownSubjectTokenType",
     "UnknownTokenEndpointError",
+    "UnknownTokenType",
     "UnsupportedClientCredentials",
     "UnsupportedCodeChallengeMethod",
     "UnsupportedResponseTypeParam",
     "UnsupportedTokenType",
-    "UnknownTokenType",
-    "UnknownActorTokenType",
-    "UnknownSubjectTokenType",
     "UseDPoPNonce",
-    "requests",
+    "niquests",
     "oauth2_discovery_document_url",
     "oidc_discovery_document_url",
     "validate_dpop_proof",

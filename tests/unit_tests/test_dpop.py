@@ -1,12 +1,12 @@
 import secrets
 
+import niquests
 import pytest
-import requests
 from binapy import BinaPy
 from freezegun import freeze_time
 from jwskate import Jwk, Jwt, KeyManagementAlgs, SignatureAlgs, SignedJwt
 
-from requests_oauth2client import (
+from niquests_oauth2client import (
     DPoPKey,
     DPoPToken,
     InvalidDPoPAccessToken,
@@ -21,7 +21,7 @@ from requests_oauth2client import (
     RequestUriParameterAuthorizationRequest,
     validate_dpop_proof,
 )
-from tests.conftest import RequestsMocker
+from tests.conftest import NiquestsMocker
 
 
 @pytest.mark.parametrize("alg", SignatureAlgs.ALL_ASYMMETRIC)
@@ -44,14 +44,14 @@ def test_dpop_key(alg: str) -> None:
 
 
 @freeze_time()
-def test_dpop_client_credentials_request(requests_mock: RequestsMocker) -> None:
+def test_dpop_client_credentials_request(niquests_mock: NiquestsMocker) -> None:
     token_endpoint = "https://url.to.the/token_endpoint"
     client = OAuth2Client(
         token_endpoint=token_endpoint, client_id="foo", client_secret="bar", dpop_bound_access_tokens=True
     )
 
     access_token = "Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU"
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         json={
             "access_token": access_token,
@@ -67,8 +67,8 @@ def test_dpop_client_credentials_request(requests_mock: RequestsMocker) -> None:
     dpop_key = dpop_token.dpop_key
     assert isinstance(dpop_key, DPoPKey)
 
-    assert requests_mock.called_once
-    token_request = requests_mock.last_request
+    assert niquests_mock.called_once
+    token_request = niquests_mock.last_request
     assert token_request is not None
     dpop = Jwt(token_request.headers["DPoP"])
     assert isinstance(dpop, SignedJwt)
@@ -86,17 +86,17 @@ def test_dpop_client_credentials_request(requests_mock: RequestsMocker) -> None:
 
 @freeze_time()
 @pytest.mark.parametrize("alg", SignatureAlgs.ALL_ASYMMETRIC)
-def test_dpop_token_api_request(requests_mock: RequestsMocker, alg: str) -> None:
+def test_dpop_token_api_request(niquests_mock: NiquestsMocker, alg: str) -> None:
     private_key = Jwk.generate(alg=alg)
     dpop_key = DPoPKey(private_key=private_key)
     access_token = secrets.token_urlsafe(64)
     dpop_token = DPoPToken(access_token=access_token, _dpop_key=dpop_key)
 
     target_api = "https://my.api/resource"
-    requests_mock.put(target_api)
-    requests.put(target_api, params={"key": "value"}, auth=dpop_token)
-    assert requests_mock.called_once
-    api_request = requests_mock.last_request
+    niquests_mock.put(target_api)
+    niquests.put(target_api, params={"key": "value"}, auth=dpop_token)
+    assert niquests_mock.called_once
+    api_request = niquests_mock.last_request
     assert api_request is not None
     assert api_request.headers["Authorization"] == f"DPoP {access_token}"
     dpop = Jwt(api_request.headers["DPoP"])
@@ -115,7 +115,7 @@ def test_dpop_token_api_request(requests_mock: RequestsMocker, alg: str) -> None
 
 
 @freeze_time()
-def test_dpop_access_token_request_with_choosen_key(requests_mock: RequestsMocker) -> None:
+def test_dpop_access_token_request_with_choosen_key(niquests_mock: NiquestsMocker) -> None:
     dpop_alg = "ES512"
     dpop_key = DPoPKey.generate(alg=dpop_alg)
     token_endpoint = "https://url.to.the/token_endpoint"
@@ -123,7 +123,7 @@ def test_dpop_access_token_request_with_choosen_key(requests_mock: RequestsMocke
         token_endpoint=token_endpoint, client_id="foo", client_secret="bar", dpop_bound_access_tokens=True
     )
 
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         json={
             "access_token": "Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU",
@@ -138,8 +138,8 @@ def test_dpop_access_token_request_with_choosen_key(requests_mock: RequestsMocke
     assert dpop_token.token_type == "DPoP"
     assert dpop_token.dpop_key == dpop_key
 
-    assert requests_mock.called_once
-    token_request = requests_mock.last_request
+    assert niquests_mock.called_once
+    token_request = niquests_mock.last_request
     assert token_request is not None
     dpop = Jwt(token_request.headers["DPoP"])
     assert isinstance(dpop, SignedJwt)
@@ -151,8 +151,8 @@ def test_dpop_access_token_request_with_choosen_key(requests_mock: RequestsMocke
 
     # make sure that passing a dpop_key is enough to toggle DPoP, even if dpop=False
     assert isinstance(client.client_credentials(dpop=False, dpop_key=dpop_key), DPoPToken)
-    assert requests_mock.last_request is not None
-    assert "DPoP" in requests_mock.last_request.headers
+    assert niquests_mock.last_request is not None
+    assert "DPoP" in niquests_mock.last_request.headers
 
 
 def test_dpop_proof() -> None:
@@ -198,7 +198,7 @@ def test_dpop_errors() -> None:
 
 @freeze_time()
 def test_dpop_authorization_code_flow(
-    requests_mock: RequestsMocker, oauth2client: OAuth2Client, token_endpoint: str
+    niquests_mock: NiquestsMocker, oauth2client: OAuth2Client, token_endpoint: str
 ) -> None:
     azreq = oauth2client.authorization_request(dpop=True)
     assert isinstance(azreq.dpop_key, DPoPKey)
@@ -213,7 +213,7 @@ def test_dpop_authorization_code_flow(
     azresp = azreq.validate_callback(callback_uri)
     assert azresp.dpop_key == azreq.dpop_key
 
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         json={
             "token_type": "DPoP",
@@ -226,10 +226,10 @@ def test_dpop_authorization_code_flow(
     assert isinstance(token, DPoPToken)
     assert token.dpop_key == azreq.dpop_key
 
-    assert requests_mock.last_request is not None
-    assert "DPoP" in requests_mock.last_request.headers
+    assert niquests_mock.last_request is not None
+    assert "DPoP" in niquests_mock.last_request.headers
     dpop_proof = validate_dpop_proof(
-        requests_mock.last_request.headers["DPoP"], alg=oauth2client.dpop_alg, htm="POST", htu=token_endpoint
+        niquests_mock.last_request.headers["DPoP"], alg=oauth2client.dpop_alg, htm="POST", htu=token_endpoint
     )
     assert isinstance(dpop_proof, SignedJwt)
     assert dpop_proof.iat == Jwt.timestamp()
@@ -237,7 +237,7 @@ def test_dpop_authorization_code_flow(
     refreshed_token = oauth2client.refresh_token(token)
     assert isinstance(refreshed_token, DPoPToken)
     assert refreshed_token.dpop_key == azreq.dpop_key
-    dpop_proof2 = validate_dpop_proof(requests_mock.last_request.headers["DPoP"], htm="POST", htu=token_endpoint)
+    dpop_proof2 = validate_dpop_proof(niquests_mock.last_request.headers["DPoP"], htm="POST", htu=token_endpoint)
     assert isinstance(dpop_proof2, SignedJwt)
     assert dpop_proof2.iat == Jwt.timestamp()
     assert dpop_proof.jwt_token_id != dpop_proof2.jwt_token_id
@@ -245,7 +245,7 @@ def test_dpop_authorization_code_flow(
 
 @freeze_time()
 def test_dpop_pushed_authorization_code_flow(
-    requests_mock: RequestsMocker,
+    niquests_mock: NiquestsMocker,
     oauth2client: OAuth2Client,
     token_endpoint: str,
     pushed_authorization_request_endpoint: str,
@@ -259,7 +259,7 @@ def test_dpop_pushed_authorization_code_flow(
     request_uri = "https://my.request.uri"
     expires_in = 30
 
-    requests_mock.post(
+    niquests_mock.post(
         pushed_authorization_request_endpoint,
         [
             {"status_code": 401, "headers": {"DPoP-Nonce": dpop_nonce}, "json": {"error": "use_dpop_nonce"}},
@@ -270,8 +270,8 @@ def test_dpop_pushed_authorization_code_flow(
     par_resp = oauth2client.pushed_authorization_request(azreq)
     assert isinstance(par_resp, RequestUriParameterAuthorizationRequest)
 
-    assert requests_mock.call_count == 2
-    first_request, second_request = requests_mock.request_history
+    assert niquests_mock.call_count == 2
+    first_request, second_request = niquests_mock.request_history
     assert first_request.url == pushed_authorization_request_endpoint
     assert second_request.url == pushed_authorization_request_endpoint
     assert "DPoP" in first_request.headers
@@ -436,9 +436,9 @@ def test_validate_dpop_proof() -> None:
     )
 
 
-def test_dpop_as_provided_nonce(requests_mock: RequestsMocker, oauth2client: OAuth2Client, token_endpoint: str) -> None:
+def test_dpop_as_provided_nonce(niquests_mock: NiquestsMocker, oauth2client: OAuth2Client, token_endpoint: str) -> None:
     dpop_nonce = "my_dpop_nonce"
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         [
             {
@@ -455,9 +455,9 @@ def test_dpop_as_provided_nonce(requests_mock: RequestsMocker, oauth2client: OAu
 
     token = oauth2client.client_credentials(scope="my_scope", dpop=True)
     assert isinstance(token, DPoPToken)
-    assert requests_mock.call_count == 2
-    request_without_nonce = requests_mock.request_history[0]
-    request_with_nonce = requests_mock.request_history[1]
+    assert niquests_mock.call_count == 2
+    request_without_nonce = niquests_mock.request_history[0]
+    request_with_nonce = niquests_mock.request_history[1]
 
     assert "DPoP" in request_without_nonce.headers
     assert "DPop-Nonce" not in request_without_nonce.headers
@@ -470,14 +470,14 @@ def test_dpop_as_provided_nonce(requests_mock: RequestsMocker, oauth2client: OAu
 
 
 def test_dpop_with_rs_provided_nonce(
-    requests_mock: RequestsMocker, oauth2client: OAuth2Client, target_api: str, token_endpoint: str
+    niquests_mock: NiquestsMocker, oauth2client: OAuth2Client, target_api: str, token_endpoint: str
 ) -> None:
     dpop_nonce = "my_dpop_nonce"
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint, json={"access_token": "my_access_token", "token_type": "DPoP", "expires_in": 3600}
     )
 
-    requests_mock.post(
+    niquests_mock.post(
         target_api,
         [
             {
@@ -492,16 +492,16 @@ def test_dpop_with_rs_provided_nonce(
         ],
     )
 
-    session = requests.Session()
+    session = niquests.Session()
     session.auth = OAuth2ClientCredentialsAuth(oauth2client, dpop=True)
 
     response = session.post(target_api)
     assert response.status_code == 200
-    assert requests_mock.call_count == 3
+    assert niquests_mock.call_count == 3
 
-    token_req = requests_mock.request_history[0]
-    api_req_without_nonce = requests_mock.request_history[1]
-    api_req_with_nonce = requests_mock.request_history[2]
+    token_req = niquests_mock.request_history[0]
+    api_req_without_nonce = niquests_mock.request_history[1]
+    api_req_with_nonce = niquests_mock.request_history[2]
 
     assert token_req.url == token_endpoint
     assert api_req_without_nonce.url == api_req_with_nonce.url == target_api
@@ -511,19 +511,19 @@ def test_dpop_with_rs_provided_nonce(
     proof_with_nonce = SignedJwt(api_req_with_nonce.headers["DPoP"])
     assert proof_with_nonce.claims["nonce"] == dpop_nonce
 
-    requests_mock.reset_mock()
+    niquests_mock.reset_mock()
     second_response = session.post(target_api)
     assert second_response.status_code == 200
-    assert requests_mock.called_once
-    assert requests_mock.last_request is not None
-    assert requests_mock.last_request.url == target_api
-    second_proof_with_nonce = SignedJwt(requests_mock.last_request.headers["DPoP"])
+    assert niquests_mock.called_once
+    assert niquests_mock.last_request is not None
+    assert niquests_mock.last_request.url == target_api
+    second_proof_with_nonce = SignedJwt(niquests_mock.last_request.headers["DPoP"])
     assert second_proof_with_nonce.claims["nonce"] == dpop_nonce
 
 
-def test_as_missing_dpop_nonce(requests_mock: RequestsMocker, oauth2client: OAuth2Client, token_endpoint: str) -> None:
+def test_as_missing_dpop_nonce(niquests_mock: NiquestsMocker, oauth2client: OAuth2Client, token_endpoint: str) -> None:
     """Raise an exception if the RS requires a nonce but forgets to include its value in the response."""
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         [
             {
@@ -541,10 +541,10 @@ def test_as_missing_dpop_nonce(requests_mock: RequestsMocker, oauth2client: OAut
         oauth2client.client_credentials(scope="my_scope", dpop=True)
 
 
-def test_as_repeated_dpop_nonce(requests_mock: RequestsMocker, oauth2client: OAuth2Client, token_endpoint: str) -> None:
+def test_as_repeated_dpop_nonce(niquests_mock: NiquestsMocker, oauth2client: OAuth2Client, token_endpoint: str) -> None:
     """Protect against infinite looping if the AS requires the same nonce that is already included in the proof."""
     dpop_nonce = "my_dpop_nonce"
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         [
             {
@@ -571,11 +571,11 @@ def test_as_repeated_dpop_nonce(requests_mock: RequestsMocker, oauth2client: OAu
 
 
 def test_as_dpop_nonce_in_response_to_non_dpop_request(
-    requests_mock: RequestsMocker, oauth2client: OAuth2Client, token_endpoint: str
+    niquests_mock: NiquestsMocker, oauth2client: OAuth2Client, token_endpoint: str
 ) -> None:
     """Raise an exception if the AS requires a DPoP nonce as reply to a non-DPoP token request."""
     dpop_nonce = "my_dpop_nonce"
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         [
             {
@@ -594,9 +594,9 @@ def test_as_dpop_nonce_in_response_to_non_dpop_request(
         oauth2client.client_credentials(scope="my_scope", dpop=False)
 
 
-def test_as_dpop_nonce_loop(requests_mock: RequestsMocker, oauth2client: OAuth2Client, token_endpoint: str) -> None:
+def test_as_dpop_nonce_loop(niquests_mock: NiquestsMocker, oauth2client: OAuth2Client, token_endpoint: str) -> None:
     """Protect against infinite looping if the AS keeps requesting new nonces on every request."""
-    requests_mock.post(
+    niquests_mock.post(
         token_endpoint,
         [
             {
@@ -630,9 +630,9 @@ def test_as_dpop_nonce_loop(requests_mock: RequestsMocker, oauth2client: OAuth2C
         oauth2client.client_credentials(scope="my_scope", dpop=True)
 
 
-def test_rs_missing_nonce(requests_mock: RequestsMocker, target_api: str) -> None:
+def test_rs_missing_nonce(niquests_mock: NiquestsMocker, target_api: str) -> None:
     """Raise an exception if the RS requires a nonce but forgets to include its value in the response."""
-    requests_mock.get(
+    niquests_mock.get(
         target_api,
         status_code=401,
         headers={
@@ -644,13 +644,13 @@ def test_rs_missing_nonce(requests_mock: RequestsMocker, target_api: str) -> Non
     dpop_token = DPoPToken(access_token="my_dpop_access_token", _dpop_key=dpop_key)
 
     with pytest.raises(MissingDPoPNonce):
-        requests.get(target_api, auth=dpop_token)
+        niquests.get(target_api, auth=dpop_token)
 
 
-def test_rs_repeated_nonce(requests_mock: RequestsMocker, target_api: str) -> None:
+def test_rs_repeated_nonce(niquests_mock: NiquestsMocker, target_api: str) -> None:
     """Protect against infinite looping if the RS requires the same nonce that is already included in the proof."""
     dpop_nonce = "my_dpop_nonce"
-    requests_mock.get(
+    niquests_mock.get(
         target_api,
         status_code=401,
         headers={
@@ -663,14 +663,14 @@ def test_rs_repeated_nonce(requests_mock: RequestsMocker, target_api: str) -> No
     dpop_token = DPoPToken(access_token="my_dpop_access_token", _dpop_key=dpop_key)
 
     with pytest.raises(RepeatedDPoPNonce):
-        requests.get(target_api, auth=dpop_token)
+        niquests.get(target_api, auth=dpop_token)
 
 
 def test_rs_dpop_nonce_loop(
-    requests_mock: RequestsMocker, target_api: str, oauth2client: OAuth2Client, token_endpoint: str
+    niquests_mock: NiquestsMocker, target_api: str, oauth2client: OAuth2Client, token_endpoint: str
 ) -> None:
     """Protection against infinite looping if the RS keeps requesting new nonces on every request."""
-    requests_mock.get(
+    niquests_mock.get(
         target_api,
         [
             {
@@ -700,6 +700,6 @@ def test_rs_dpop_nonce_loop(
     dpop_key = DPoPKey.generate()
     dpop_token = DPoPToken(access_token="my_dpop_access_token", _dpop_key=dpop_key)
 
-    resp = requests.get(target_api, auth=dpop_token)
+    resp = niquests.get(target_api, auth=dpop_token)
     assert resp.status_code == 401
     assert resp.headers["DPoP-Nonce"] == "nonce2"

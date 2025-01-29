@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import requests
+import niquests
 from attrs import define, field, setters
 from typing_extensions import override
 
@@ -21,14 +21,14 @@ class NonRenewableTokenError(Exception):
 
 
 @define(init=False)
-class OAuth2AccessTokenAuth(requests.auth.AuthBase):
+class OAuth2AccessTokenAuth(niquests.auth.AuthBase):
     """Authentication Handler for OAuth 2.0 Access Tokens and (optional) Refresh Tokens.
 
-    This [Requests Auth handler][requests.auth.AuthBase] implementation uses an access token as
+    This [Requests Auth handler][niquests.auth.AuthBase] implementation uses an access token as
     Bearer or DPoP token, and can automatically refresh it when expired, if a refresh token is available.
 
     Token can be a simple `str` containing a raw access token value, or a
-    [BearerToken][requests_oauth2client.tokens.BearerToken] that can contain a `refresh_token`.
+    [BearerToken][niquests_oauth2client.tokens.BearerToken] that can contain a `refresh_token`.
 
     In addition to adding a properly formatted `Authorization` header, this will obtain a new token
     once the current token is expired. Expiration is detected based on the `expires_in` hint
@@ -44,14 +44,14 @@ class OAuth2AccessTokenAuth(requests.auth.AuthBase):
 
     Example:
         ```python
-        from requests_oauth2client import BearerToken, OAuth2Client, OAuth2AccessTokenAuth, requests
+        from niquests_oauth2client import BearerToken, OAuth2Client, OAuth2AccessTokenAuth, niquests
 
         client = OAuth2Client(token_endpoint="https://my.as.local/token", auth=("client_id", "client_secret"))
         # obtain a BearerToken any way you see fit, optionally including a refresh token
         # for this example, the token value is hardcoded
         token = BearerToken(access_token="access_token", expires_in=600, refresh_token="refresh_token")
         auth = OAuth2AccessTokenAuth(client, token, scope="my_scope")
-        resp = requests.post("https://my.api.local/resource", auth=auth)
+        resp = niquests.post("https://my.api.local/resource", auth=auth)
         ```
 
     """
@@ -68,7 +68,7 @@ class OAuth2AccessTokenAuth(requests.auth.AuthBase):
             token = BearerToken(token)
         self.__attrs_init__(client=client, token=token, leeway=leeway, token_kwargs=token_kwargs)
 
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(self, request: niquests.PreparedRequest) -> niquests.PreparedRequest:
         """Add the Access Token to the request.
 
         If Access Token is not specified or expired, obtain a new one first.
@@ -101,23 +101,23 @@ class OAuth2AccessTokenAuth(requests.auth.AuthBase):
 class OAuth2ClientCredentialsAuth(OAuth2AccessTokenAuth):
     """An Auth Handler for the [Client Credentials grant](https://www.rfc-editor.org/rfc/rfc6749#section-4.4).
 
-    This [requests AuthBase][requests.auth.AuthBase] automatically gets Access Tokens from an OAuth
+    This [niquests AuthBase][niquests.auth.AuthBase] automatically gets Access Tokens from an OAuth
     2.0 Token Endpoint with the Client Credentials grant, and will get a new one once the current
     one is expired.
 
     Args:
-        client: the [OAuth2Client][requests_oauth2client.client.OAuth2Client] to use to obtain Access Tokens.
+        client: the [OAuth2Client][niquests_oauth2client.client.OAuth2Client] to use to obtain Access Tokens.
         token: an initial Access Token, if you have one already. In most cases, leave `None`.
         leeway: expiration leeway, in number of seconds
         **token_kwargs: extra kw parameters to pass to the Token Endpoint. May include `scope`, `resource`, etc.
 
     Example:
         ```python
-        from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth, requests
+        from niquests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth, niquests
 
         client = OAuth2Client(token_endpoint="https://my.as.local/token", auth=("client_id", "client_secret"))
         oauth2cc = OAuth2ClientCredentialsAuth(client, scope="my_scope")
-        resp = requests.post("https://my.api.local/resource", auth=oauth2cc)
+        resp = niquests.post("https://my.api.local/resource", auth=oauth2cc)
         ```
 
     """
@@ -139,7 +139,7 @@ class OAuth2ClientCredentialsAuth(OAuth2AccessTokenAuth):
 class OAuth2AuthorizationCodeAuth(OAuth2AccessTokenAuth):  # type: ignore[override]
     """Authentication handler for the [Authorization Code grant](https://www.rfc-editor.org/rfc/rfc6749#section-4.1).
 
-    This [Requests Auth handler][requests.auth.AuthBase] implementation exchanges an Authorization
+    This [niquests Auth handler][niquests.auth.AuthBase] implementation exchanges an Authorization
     Code for an access token, then automatically refreshes it once it is expired.
 
     Args:
@@ -151,7 +151,7 @@ class OAuth2AuthorizationCodeAuth(OAuth2AccessTokenAuth):  # type: ignore[overri
 
     Example:
         ```python
-        from requests_oauth2client import ApiClient, OAuth2Client, OAuth2AuthorizationCodeAuth
+        from niquests_oauth2client import ApiClient, OAuth2Client, OAuth2AuthorizationCodeAuth
 
         client = OAuth2Client(token_endpoint="https://myas.local/token", auth=("client_id", "client_secret"))
         code = "my_code"  # you must obtain this code yourself
@@ -181,7 +181,7 @@ class OAuth2AuthorizationCodeAuth(OAuth2AccessTokenAuth):  # type: ignore[overri
             token_kwargs=token_kwargs,
         )
 
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(self, request: niquests.PreparedRequest) -> niquests.PreparedRequest:
         """Implement the Authorization Code grant as an Authentication Handler.
 
         This exchanges an Authorization Code for an access token and adds it in the request.
@@ -208,7 +208,7 @@ class OAuth2AuthorizationCodeAuth(OAuth2AccessTokenAuth):  # type: ignore[overri
 class OAuth2ResourceOwnerPasswordAuth(OAuth2AccessTokenAuth):  # type: ignore[override]
     """Authentication Handler for the [Resource Owner Password Credentials Flow](https://www.rfc-editor.org/rfc/rfc6749#section-4.3).
 
-    This [Requests Auth handler][requests.auth.AuthBase] implementation exchanges the user
+    This [niquests Auth handler][niquests.auth.AuthBase] implementation exchanges the user
     credentials for an Access Token, then automatically repeats the process to get a new one
     once the current one is expired.
 
@@ -222,7 +222,7 @@ class OAuth2ResourceOwnerPasswordAuth(OAuth2AccessTokenAuth):  # type: ignore[ov
     dedicated, centralized login page managed by the AS, which makes it totally insecure for 3rd party apps.
 
     It needs the username and password and an
-    [OAuth2Client][requests_oauth2client.client.OAuth2Client] to be able to get a token from
+    [OAuth2Client][niquests_oauth2client.client.OAuth2Client] to be able to get a token from
     the AS Token Endpoint just before the first request using this Auth Handler is being sent.
 
     Args:
@@ -235,7 +235,7 @@ class OAuth2ResourceOwnerPasswordAuth(OAuth2AccessTokenAuth):  # type: ignore[ov
 
     Example:
         ```python
-        from requests_oauth2client import ApiClient, OAuth2Client, OAuth2ResourceOwnerPasswordAuth
+        from niquests_oauth2client import ApiClient, OAuth2Client, OAuth2ResourceOwnerPasswordAuth
 
         client = OAuth2Client(
             token_endpoint="https://myas.local/token",
@@ -286,15 +286,15 @@ class OAuth2ResourceOwnerPasswordAuth(OAuth2AccessTokenAuth):  # type: ignore[ov
 class OAuth2DeviceCodeAuth(OAuth2AccessTokenAuth):  # type: ignore[override]
     """Authentication Handler for the [Device Code Flow](https://www.rfc-editor.org/rfc/rfc8628).
 
-    This [Requests Auth handler][requests.auth.AuthBase] implementation exchanges a Device Code for
+    This [niquests Auth handler][niquests.auth.AuthBase] implementation exchanges a Device Code for
     an Access Token, then automatically refreshes it once it is expired.
 
-    It needs a Device Code and an [OAuth2Client][requests_oauth2client.client.OAuth2Client] to be
+    It needs a Device Code and an [OAuth2Client][niquests_oauth2client.client.OAuth2Client] to be
     able to get a token from the AS Token Endpoint just before the first request using this Auth
     Handler is being sent.
 
     Args:
-        client: the [OAuth2Client][requests_oauth2client.client.OAuth2Client] to use to obtain Access Tokens.
+        client: the [OAuth2Client][niquests_oauth2client.client.OAuth2Client] to use to obtain Access Tokens.
         device_code: a Device Code obtained from the AS.
         interval: the interval to use to pool the Token Endpoint, in seconds.
         expires_in: the lifetime of the token, in seconds.
@@ -304,12 +304,12 @@ class OAuth2DeviceCodeAuth(OAuth2AccessTokenAuth):  # type: ignore[override]
 
     Example:
         ```python
-        from requests_oauth2client import OAuth2Client, OAuth2DeviceCodeAuth, requests
+        from niquests_oauth2client import OAuth2Client, OAuth2DeviceCodeAuth, niquests
 
         client = OAuth2Client(token_endpoint="https://my.as.local/token", auth=("client_id", "client_secret"))
         device_code = client.device_authorization()
         auth = OAuth2DeviceCodeAuth(client, device_code)
-        resp = requests.post("https://my.api.local/resource", auth=auth)
+        resp = niquests.post("https://my.api.local/resource", auth=auth)
         ```
 
     """
@@ -342,16 +342,16 @@ class OAuth2DeviceCodeAuth(OAuth2AccessTokenAuth):  # type: ignore[override]
         )
 
     @override
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(self, request: niquests.PreparedRequest) -> niquests.PreparedRequest:
         """Implement the Device Code grant as a request Authentication Handler.
 
-        This exchanges a Device Code for an access token and adds it in HTTP requests.
+        This exchanges a Device Code for an access token and adds it in HTTP niquests.
 
         Args:
-            request: a [requests.PreparedRequest][]
+            request: a [niquests.PreparedRequest][]
 
         Returns:
-            a [requests.PreparedRequest][] with an Access Token added in Authorization Header
+            a [niquests.PreparedRequest][] with an Access Token added in Authorization Header
 
         """
         if self.token is None:

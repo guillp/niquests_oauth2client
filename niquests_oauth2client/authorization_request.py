@@ -6,7 +6,7 @@ import re
 import secrets
 from enum import Enum
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Iterable, Sequence
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
 from attrs import asdict, field, fields, frozen
 from binapy import BinaPy
@@ -28,6 +28,7 @@ from .exceptions import (
 from .utils import accepts_expires_in
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
     from datetime import datetime
 
 
@@ -337,7 +338,7 @@ class AuthorizationRequest:
 
     Example:
         ```python
-        from requests_oauth2client import AuthorizationRequest
+        from niquests_oauth2client import AuthorizationRequest
 
         azr = AuthorizationRequest(
             authorization_endpoint="https://url.to.the/authorization_endpoint",
@@ -521,7 +522,7 @@ class AuthorizationRequest:
         """Validate an Authorization Response against this Request.
 
         Validate a given Authorization Response URI against this Authorization Request, and return
-        an [AuthorizationResponse][requests_oauth2client.authorization_request.AuthorizationResponse].
+        an [AuthorizationResponse][niquests_oauth2client.authorization_request.AuthorizationResponse].
 
         This includes matching the `state` parameter, checking for returned errors, and extracting
         the returned `code` and other parameters.
@@ -728,7 +729,7 @@ class AuthorizationRequest:
         """Error handler for Authorization Response errors.
 
         Triggered by
-        [validate_callback()][requests_oauth2client.authorization_request.AuthorizationRequest.validate_callback]
+        [validate_callback()][niquests_oauth2client.authorization_request.AuthorizationRequest.validate_callback]
         if the response uri contains an error.
 
         Args:
@@ -778,9 +779,9 @@ class RequestParameterAuthorizationRequest:
     """Represent an Authorization Request that includes a `request` JWT.
 
     To construct such a request yourself, the easiest way is to initialize
-    an [`AuthorizationRequest`][requests_oauth2client.authorization_request.AuthorizationRequest]
+    an [`AuthorizationRequest`][niquests_oauth2client.authorization_request.AuthorizationRequest]
     then sign it with
-    [`AuthorizationRequest.sign()`][requests_oauth2client.authorization_request.AuthorizationRequest.sign].
+    [`AuthorizationRequest.sign()`][niquests_oauth2client.authorization_request.AuthorizationRequest.sign].
 
     Args:
         authorization_endpoint: the Authorization Endpoint uri

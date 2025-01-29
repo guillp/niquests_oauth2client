@@ -1,14 +1,14 @@
-"""This module contains all exception classes from `requests_oauth2client`."""
+"""This module contains all exception classes from `niquests_oauth2client`."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import requests
+    import niquests
 
-    from requests_oauth2client.authorization_request import AuthorizationRequest
-    from requests_oauth2client.client import OAuth2Client
+    from niquests_oauth2client.authorization_request import AuthorizationRequest
+    from niquests_oauth2client.client import OAuth2Client
 
 
 class OAuth2Error(Exception):
@@ -21,14 +21,14 @@ class OAuth2Error(Exception):
 
     """
 
-    def __init__(self, response: requests.Response, client: OAuth2Client, description: str | None = None) -> None:
+    def __init__(self, response: niquests.Response, client: OAuth2Client, description: str | None = None) -> None:
         super().__init__(f"The remote endpoint returned an error: {description or 'no description provided'}")
         self.response = response
         self.client = client
         self.description = description
 
     @property
-    def request(self) -> requests.PreparedRequest:
+    def request(self) -> niquests.PreparedRequest:
         """The request leading to the error."""
         return self.response.request
 
@@ -49,7 +49,7 @@ class EndpointError(OAuth2Error):
 
     def __init__(
         self,
-        response: requests.Response,
+        response: niquests.Response,
         client: OAuth2Client,
         error: str,
         description: str | None = None,
